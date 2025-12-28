@@ -23,6 +23,7 @@ This is an experimental React data table spike project using React 19, TypeScrip
 ## Architecture
 
 Standard Vite React project structure:
+
 - `src/main.tsx` - Application entry point, renders App in StrictMode
 - `src/App.tsx` - Root component
 - `vite.config.ts` - Vite configuration with React plugin
@@ -31,5 +32,6 @@ Standard Vite React project structure:
 ## TypeScript Configuration
 
 Uses project references with separate configs:
+
 - `tsconfig.app.json` - Application code (strict mode enabled)
 - `tsconfig.node.json` - Node tooling files
