@@ -1,0 +1,8 @@
+/* App layout styles */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Remove legacy styles that conflict with form layout */
