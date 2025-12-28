@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Multi-Form Save Experiment**: A React 19 + TypeScript experiment demonstrating coordinated multi-form validation and submission. The core challenge is managing multiple independent forms that share a single "Save All" button, with validation gating submission.
+**Multi-Form Save Experiment**: A React 19 + TypeScript experiment demonstrating coordinated multi-form validation and
+submission. The core challenge is managing multiple independent forms that share a single "Save All" button, with
+validation gating submission.
 
 ## Commands
 
@@ -19,18 +21,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Tech Stack
 
-| Library | Purpose |
-|---------|---------|
-| React 19 | UI framework |
-| Vite (rolldown-vite) | Dev server and bundler |
-| React Router v7 | Client-side routing |
-| Zustand | Global state (dirty tracking, validation, submission) |
-| React Hook Form | Form state and field-level validation |
-| Zod + @hookform/resolvers | Schema validation |
-| Tailwind CSS v4 | Styling |
-| MSW (Mock Service Worker) | API mocking |
-| Vitest + Testing Library | Unit testing |
-| Cucumber.js + Playwright | Acceptance testing |
+| Library                   | Purpose                                               |
+|---------------------------|-------------------------------------------------------|
+| React 19                  | UI framework                                          |
+| Vite (rolldown-vite)      | Dev server and bundler                                |
+| React Router v7           | Client-side routing                                   |
+| Zustand                   | Global state (dirty tracking, validation, submission) |
+| React Hook Form           | Form state and field-level validation                 |
+| Zod + @hookform/resolvers | Schema validation                                     |
+| Tailwind CSS v4           | Styling                                               |
+| MSW (Mock Service Worker) | API mocking                                           |
+| Vitest + Testing Library  | Unit testing                                          |
+| Cucumber.js + Playwright  | Acceptance testing                                    |
 
 ## Architecture
 
@@ -67,7 +69,8 @@ src/
 
 The system uses a Zustand store (`formCoordinationStore`) to coordinate multiple forms:
 
-1. **Registration**: Each form registers with `useSubmittableForm` hook, providing `formId`, `displayName`, `validate()`, and `submit()` functions
+1. **Registration**: Each form registers with `useSubmittableForm` hook, providing `formId`, `displayName`,
+   `validate()`, and `submit()` functions
 2. **Dirty Tracking**: Forms report dirty state; store aggregates into `isDirty` boolean
 3. **Validation**: `validateAllDirtyForms()` triggers parallel validation on all dirty forms
 4. **Submission**: `submitAllDirtyForms()` runs only if all validations pass
@@ -192,14 +195,14 @@ Detailed implementation plans in `/documentation`:
 
 ## Common Tasks
 
-| Task | How |
-|------|-----|
-| Add a new form | Create component with `useSubmittableForm`, add schema, add MSW handler |
-| Add validation rule | Update Zod schema in `validation-schemas.ts` |
-| Modify submission logic | Edit `formSubmissionService.ts` and `formCoordinationStore.ts` |
-| Add error notification | Use `errorStore.addNotification()` |
-| Debug dirty state | Check `formCoordinationStore.dirtyForms` in React DevTools |
-| Test API failure | Override MSW handler with error response |
+| Task                    | How                                                                     |
+|-------------------------|-------------------------------------------------------------------------|
+| Add a new form          | Create component with `useSubmittableForm`, add schema, add MSW handler |
+| Add validation rule     | Update Zod schema in `validation-schemas.ts`                            |
+| Modify submission logic | Edit `formSubmissionService.ts` and `formCoordinationStore.ts`          |
+| Add error notification  | Use `errorStore.addNotification()`                                      |
+| Debug dirty state       | Check `formCoordinationStore.dirtyForms` in React DevTools              |
+| Test API failure        | Override MSW handler with error response                                |
 
 ## TypeScript Configuration
 
