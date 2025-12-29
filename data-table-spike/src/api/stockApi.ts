@@ -2,14 +2,26 @@ import { API_CONFIG } from '../config/api';
 import { StockApiError } from './errors';
 import type { Stock, StockApiResponse } from '../types/stock';
 
+let hasWarnedAboutMissingApiKey = false;
+
 /**
  * Creates headers for API requests
  */
 function createHeaders(): HeadersInit {
-  return {
+  const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${API_CONFIG.apiKey}`,
   };
+
+  if (API_CONFIG.apiKey) {
+    headers['Authorization'] = `Bearer ${API_CONFIG.apiKey}`;
+  } else if (!hasWarnedAboutMissingApiKey) {
+    console.warn(
+      '[StockAPI] API key is not configured. Set VITE_STOCK_API_KEY environment variable.'
+    );
+    hasWarnedAboutMissingApiKey = true;
+  }
+
+  return headers;
 }
 
 /**
