@@ -30,13 +30,18 @@ Given('I have filtered by {string}', async function (this: PlaywrightWorld, filt
 
 Given(
   'I navigate to {string} with slow network',
+  { timeout: 15000 },
   async function (this: PlaywrightWorld, path: string) {
-    // Simulate slow network to see loading state
-    await this.page.route('**/stocks', async (route) => {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    // Intercept the API request and delay it significantly
+    await this.page.route('**/v1/stocks', async (route) => {
+      // Hold the request for 5 seconds to ensure loading state is visible
+      await new Promise((resolve) => setTimeout(resolve, 5000));
       await route.continue();
     });
-    await this.page.goto(`${BASE_URL}${path}`);
+    // Navigate to the page
+    await this.page.goto(`${BASE_URL}${path}`, { waitUntil: 'domcontentloaded' });
+    // Give React time to mount and show loading state
+    await this.page.waitForTimeout(500);
   }
 );
 
@@ -183,6 +188,16 @@ Then(
     const priceTexts = await this.page.locator('.price').allTextContents();
     const prices = priceTexts.map((p) => parseFloat(p.replace(/[$,]/g, '')));
     const sortedPrices = [...prices].sort((a, b) => a - b);
+    expect(prices).toEqual(sortedPrices);
+  }
+);
+
+Then(
+  'the stocks should be sorted by price in descending order',
+  async function (this: PlaywrightWorld) {
+    const priceTexts = await this.page.locator('.price').allTextContents();
+    const prices = priceTexts.map((p) => parseFloat(p.replace(/[$,]/g, '')));
+    const sortedPrices = [...prices].sort((a, b) => b - a);
     expect(prices).toEqual(sortedPrices);
   }
 );
