@@ -6,12 +6,23 @@ import App from './App.tsx';
 import './styles/tailwind.css';
 import './index.css';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <BrowserRouter>
-      <QueryProvider>
-        <App />
-      </QueryProvider>
-    </BrowserRouter>
-  </StrictMode>
-);
+async function enableMocking() {
+  if (import.meta.env.DEV) {
+    const { worker } = await import('./mocks/browser');
+    return worker.start({
+      onUnhandledRequest: 'bypass',
+    });
+  }
+}
+
+enableMocking().then(() => {
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <BrowserRouter>
+        <QueryProvider>
+          <App />
+        </QueryProvider>
+      </BrowserRouter>
+    </StrictMode>
+  );
+});
