@@ -1,5 +1,10 @@
+/**
+ * Props for the LoadingState component.
+ */
 interface LoadingStateProps {
+  /** Number of skeleton rows to display. Defaults to 10. */
   rowCount?: number;
+  /** Number of skeleton columns to display. Defaults to 7 (matching the stock table columns). */
   columnCount?: number;
 }
 
