@@ -54,12 +54,12 @@ export function useVirtualizationMetrics(
       const delta = now - lastFrameTimeRef.current;
       lastFrameTimeRef.current = now;
 
-      frameTimesRef.current.push(delta);
-
-      // Keep last 60 frame times
-      if (frameTimesRef.current.length > 60) {
+      // Keep last 60 frame times - limit before adding
+      if (frameTimesRef.current.length >= 60) {
         frameTimesRef.current.shift();
       }
+
+      frameTimesRef.current.push(delta);
 
       // Calculate FPS every 30 frames
       if (frameTimesRef.current.length % 30 === 0) {
@@ -85,11 +85,13 @@ export function useVirtualizationMetrics(
 
     return () => {
       const renderTime = performance.now() - startTime;
-      renderTimesRef.current.push(renderTime);
 
-      if (renderTimesRef.current.length > 100) {
+      // Keep last 100 render times - limit before adding
+      if (renderTimesRef.current.length >= 100) {
         renderTimesRef.current.shift();
       }
+
+      renderTimesRef.current.push(renderTime);
 
       const avg = renderTimesRef.current.reduce((a, b) => a + b, 0) / renderTimesRef.current.length;
       setAvgRenderTime(Math.round(avg * 100) / 100);
