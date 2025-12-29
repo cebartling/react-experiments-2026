@@ -154,9 +154,9 @@ Configure Cucumber.js with Playwright as the test runner.
 
 Add the following dev dependencies:
 
-- `@cucumber/cucumber` - BDD testing framework
-- `@cucumber/playwright` - Playwright integration for Cucumber
+- `@cucumber/cucumber` - BDD testing framework (v12+)
 - `playwright` - Browser automation library
+- `@playwright/test` - Playwright test assertions
 - `ts-node` - TypeScript execution
 - `tsx` - Fast TypeScript execution with ESM support
 
@@ -175,8 +175,7 @@ Create a Cucumber configuration file `cucumber.js` in the root directory:
 
 ```javascript
 export default {
-  requireModule: ['tsx'],
-  require: ['features/**/*.ts'],
+  import: ['features/**/*.ts'],
   format: ['progress-bar', 'html:reports/cucumber/report.html'],
   formatOptions: { snippetInterface: 'async-await' },
   publishQuiet: true,
@@ -271,13 +270,15 @@ Add necessary scripts to `package.json` to run acceptance tests:
 ```json
 {
   "scripts": {
-    "test:acceptance": "NODE_OPTIONS='--import tsx' cucumber-js --import 'features/**/*.ts'",
-    "test:acceptance:report": "NODE_OPTIONS='--import tsx' cucumber-js --import 'features/**/*.ts' --format json:reports/cucumber/report.json",
+    "test:acceptance": "NODE_OPTIONS='--import tsx' cucumber-js",
+    "test:acceptance:report": "NODE_OPTIONS='--import tsx' cucumber-js --format json:reports/cucumber/report.json",
     "report:generate": "NODE_OPTIONS='--import tsx' npx tsx scripts/generate-cucumber-report.ts",
     "test:acceptance:html": "npm run test:acceptance:report && npm run report:generate"
   }
 }
 ```
+
+Note: The `cucumber.js` configuration file specifies the import paths, so they don't need to be repeated in the CLI commands.
 
 Update `.gitignore` to exclude reports directory:
 
