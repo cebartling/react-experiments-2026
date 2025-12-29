@@ -38,8 +38,8 @@ export function useStockData(options: UseStockDataOptions = {}) {
   return useQuery({
     queryKey: queryKeys.stocks.all,
     queryFn: fetchStocks,
+    ...queryOptions,
     enabled,
     refetchInterval: refetchInterval > 0 ? refetchInterval : false,
-    ...queryOptions,
   });
 }
