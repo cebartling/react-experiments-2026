@@ -42,6 +42,7 @@
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
     "jsdom": "^27.4.0",
+    "multiple-cucumber-html-reporter": "^3.9.3",
     "playwright": "^1.57.0",
     "prettier": "^3.7.4",
     "tailwindcss": "^4.1.18",
