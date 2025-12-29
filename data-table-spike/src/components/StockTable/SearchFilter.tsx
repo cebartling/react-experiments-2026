@@ -1,9 +1,16 @@
 import { useCallback, useState, useEffect } from 'react';
 
+/**
+ * Props for the SearchFilter component.
+ */
 interface SearchFilterProps {
+  /** The current filter value (controlled component) */
   value: string;
+  /** Callback invoked with the new filter value after debounce delay */
   onChange: (value: string) => void;
+  /** Placeholder text for the search input. Defaults to "Search stocks..." */
   placeholder?: string;
+  /** Debounce delay in milliseconds before onChange is called. Defaults to 300ms. */
   debounceMs?: number;
 }
 
