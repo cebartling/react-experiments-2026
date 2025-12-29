@@ -867,3 +867,21 @@ export const useSettingsStore = create<SettingsState>()(
 Create a feature branch for this work off of the main branch.
 Commit the changes with a descriptive message.
 Create a PR from the feature branch that will be merged into the main branch after review.
+
+## TanStack Table
+
+Install TanStack Table for building powerful data tables.
+TanStack Table is a headless UI library for building tables and datagrids in React with support for sorting, filtering, pagination, and more.
+Add the following dependencies:
+- `@tanstack/react-table` - Headless table library for React.
+- `@tanstack/table-core` - Core table logic for TanStack Table.
+- `@tanstack/match-sorter-utils` - Utilities for fuzzy matching and sorting.
+- `@tanstack/react-virtual` - Virtualization utilities for rendering large tables efficiently.
+- `@tanstack/react-resize-observer` - Resize observer for responsive table layouts.
+- `@tanstack/react-popper` - Popper.js integration for tooltips and dropdowns in tables.
+- `@tanstack/react-query` - Data fetching and caching for table data.
+- `@tanstack/query-core` - Core logic for TanStack Query.
+Create a feature branch for this work off of the main branch.
+Commit the changes with a descriptive message.
+Create a PR from the feature branch that will be merged into the main branch after review.
+
