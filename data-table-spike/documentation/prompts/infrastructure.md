@@ -736,7 +736,7 @@ Create a PR from the feature branch that will be merged into the main branch aft
 
 ## Localforage
 
-Install localforage for abstracting persistence to localStorage and IndexedDB.
+Install `localforage` dependency for abstracting persistence to localStorage and IndexedDB.
 Create a feature branch for this work off of the main branch.
 Commit the changes with a descriptive message.
 Create a PR from the feature branch that will be merged into the main branch after review.
