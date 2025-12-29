@@ -220,7 +220,7 @@ function getPageHtml(isLoading: boolean, hasError: boolean): string {
                     '<input type="text" class="search-input" placeholder="Search by symbol or company..." aria-label="Search stocks" value="' + filterValue + '" id="search-input" />' +
                     clearBtnHtml +
                   '</div>' +
-                  '<div class="stock-count">' + filteredStocks.length + ' stocks</div>' +
+                  '<div class="stock-count">' + filteredStocks.length + ' ' + (filteredStocks.length === 1 ? 'stock' : 'stocks') + '</div>' +
                 '</div>' +
                 '<div class="stock-table-wrapper">' +
                   '<table class="stock-table">' +
@@ -437,7 +437,7 @@ Then(
   async function (this: StockTableWorld) {
     const stockCount = await this.page.locator('.stock-count');
     const text = await stockCount.textContent();
-    expect(text).toContain('1 stocks');
+    expect(text).toContain('1 stock');
   }
 );
 

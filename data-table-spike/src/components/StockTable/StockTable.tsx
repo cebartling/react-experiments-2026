@@ -56,7 +56,10 @@ export function StockTable() {
           onChange={setGlobalFilter}
           placeholder="Search by symbol or company..."
         />
-        <div className="stock-count">{table.getFilteredRowModel().rows.length} stocks</div>
+        <div className="stock-count">
+          {table.getFilteredRowModel().rows.length}{' '}
+          {table.getFilteredRowModel().rows.length === 1 ? 'stock' : 'stocks'}
+        </div>
       </div>
       <div className="stock-table-wrapper">
         <table className="stock-table">

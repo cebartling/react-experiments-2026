@@ -229,7 +229,7 @@ describe('StockTable', () => {
         vi.advanceTimersByTime(300);
       });
 
-      expect(screen.getByText('1 stocks')).toBeInTheDocument();
+      expect(screen.getByText('1 stock')).toBeInTheDocument();
 
       vi.useRealTimers();
     });
