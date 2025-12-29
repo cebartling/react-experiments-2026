@@ -462,7 +462,121 @@ Create a PR from the feature branch that will be merged into the main branch aft
 
 ## React Router
 
-Install React Router for routing.
+Install React Router for client-side routing.
+
+React Router is the standard routing library for React applications, providing declarative routing with support for nested routes, dynamic segments, and data loading.
+
+Add the following dependency:
+
+- `react-router-dom` - DOM bindings for React Router
+
+Create the directory structure for routes and pages:
+
+```
+src/
+├── routes/
+│   └── index.tsx
+└── pages/
+    ├── HomePage.tsx
+    └── AboutPage.tsx
+```
+
+Example router configuration `src/routes/index.tsx`:
+
+```typescript
+import { createBrowserRouter } from 'react-router-dom';
+import { HomePage } from '../pages/HomePage';
+import { AboutPage } from '../pages/AboutPage';
+
+export const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <HomePage />,
+  },
+  {
+    path: '/about',
+    element: <AboutPage />,
+  },
+]);
+```
+
+Example page component `src/pages/HomePage.tsx`:
+
+```tsx
+import { Link } from 'react-router-dom';
+
+export function HomePage() {
+  return (
+    <div>
+      <h1>Home</h1>
+      <Link to="/about">Go to About</Link>
+    </div>
+  );
+}
+```
+
+Update `src/main.tsx` to use the router:
+
+```tsx
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { RouterProvider } from 'react-router-dom';
+import { router } from './routes';
+import './index.css';
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <RouterProvider router={router} />
+  </StrictMode>
+);
+```
+
+For routes with layouts, use nested routes:
+
+```typescript
+import { createBrowserRouter, Outlet } from 'react-router-dom';
+import { RootLayout } from '../layouts/RootLayout';
+import { HomePage } from '../pages/HomePage';
+import { AboutPage } from '../pages/AboutPage';
+
+export const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <RootLayout />,
+    children: [
+      {
+        index: true,
+        element: <HomePage />,
+      },
+      {
+        path: 'about',
+        element: <AboutPage />,
+      },
+    ],
+  },
+]);
+```
+
+Example layout component `src/layouts/RootLayout.tsx`:
+
+```tsx
+import { Outlet, Link } from 'react-router-dom';
+
+export function RootLayout() {
+  return (
+    <div>
+      <nav>
+        <Link to="/">Home</Link>
+        <Link to="/about">About</Link>
+      </nav>
+      <main>
+        <Outlet />
+      </main>
+    </div>
+  );
+}
+```
+
 Create a feature branch for this work off of the main branch.
 Commit the changes with a descriptive message.
 Create a PR from the feature branch that will be merged into the main branch after review.
