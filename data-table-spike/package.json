@@ -19,6 +19,7 @@
     "test:acceptance:html": "npm run test:acceptance:report && npm run report:generate"
   },
   "dependencies": {
+    "localforage": "^1.10.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.11.0",

@@ -736,7 +736,134 @@ Create a PR from the feature branch that will be merged into the main branch aft
 
 ## Localforage
 
-Install `localforage` dependency for abstracting persistence to localStorage and IndexedDB.
+Install localforage for client-side storage abstraction.
+
+Localforage is a library that provides a simple localStorage-like API but with support for IndexedDB and WebSQL as backends, enabling larger storage capacity and better performance for offline-capable applications.
+
+Add the following dependency:
+
+- `localforage` - Offline storage library with IndexedDB/WebSQL/localStorage fallback
+
+Create the directory structure for storage utilities:
+
+```
+src/
+└── storage/
+```
+
+Example storage configuration `src/storage/config.ts`:
+
+```typescript
+import localforage from 'localforage';
+
+export const appStorage = localforage.createInstance({
+  name: 'data-table-spike',
+  storeName: 'app_data',
+  description: 'Application data storage',
+});
+
+export const cacheStorage = localforage.createInstance({
+  name: 'data-table-spike',
+  storeName: 'cache',
+  description: 'Cached API responses',
+});
+```
+
+Example usage in a service `src/storage/userStorage.ts`:
+
+```typescript
+import { appStorage } from './config';
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+export const userStorage = {
+  async getUser(id: number): Promise<User | null> {
+    return appStorage.getItem<User>(`user:${id}`);
+  },
+
+  async setUser(user: User): Promise<User> {
+    return appStorage.setItem(`user:${user.id}`, user);
+  },
+
+  async removeUser(id: number): Promise<void> {
+    return appStorage.removeItem(`user:${id}`);
+  },
+
+  async getAllUsers(): Promise<User[]> {
+    const users: User[] = [];
+    await appStorage.iterate<User, void>((value, key) => {
+      if (key.startsWith('user:')) {
+        users.push(value);
+      }
+    });
+    return users;
+  },
+
+  async clear(): Promise<void> {
+    return appStorage.clear();
+  },
+};
+```
+
+For integration with Zustand persistence, create a custom storage adapter `src/storage/zustandStorage.ts`:
+
+```typescript
+import localforage from 'localforage';
+import type { StateStorage } from 'zustand/middleware';
+
+const zustandStorage = localforage.createInstance({
+  name: 'data-table-spike',
+  storeName: 'zustand',
+  description: 'Zustand state persistence',
+});
+
+export const localforageStorage: StateStorage = {
+  getItem: async (name: string): Promise<string | null> => {
+    return zustandStorage.getItem(name);
+  },
+  setItem: async (name: string, value: string): Promise<void> => {
+    await zustandStorage.setItem(name, value);
+  },
+  removeItem: async (name: string): Promise<void> => {
+    await zustandStorage.removeItem(name);
+  },
+};
+```
+
+Example Zustand store with localforage persistence `src/stores/useSettingsStore.ts`:
+
+```typescript
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { localforageStorage } from '../storage/zustandStorage';
+
+interface SettingsState {
+  theme: 'light' | 'dark';
+  pageSize: number;
+  setTheme: (theme: 'light' | 'dark') => void;
+  setPageSize: (size: number) => void;
+}
+
+export const useSettingsStore = create<SettingsState>()(
+  persist(
+    (set) => ({
+      theme: 'light',
+      pageSize: 25,
+      setTheme: (theme) => set({ theme }),
+      setPageSize: (pageSize) => set({ pageSize }),
+    }),
+    {
+      name: 'settings',
+      storage: createJSONStorage(() => localforageStorage),
+    }
+  )
+);
+```
+
 Create a feature branch for this work off of the main branch.
 Commit the changes with a descriptive message.
 Create a PR from the feature branch that will be merged into the main branch after review.
