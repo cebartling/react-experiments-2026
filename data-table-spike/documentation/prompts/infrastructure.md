@@ -584,7 +584,152 @@ Create a PR from the feature branch that will be merged into the main branch aft
 ## Mock Service Worker (msw)
 
 Install Mock Service Worker (msw) for mocking HTTP requests.
-Add configuration for msw in the project's `/public` directory.
+
+MSW is an API mocking library that uses Service Worker to intercept requests at the network level, allowing seamless mocking for both browser and Node.js environments without changing application code.
+
+Add the following dev dependency:
+
+- `msw` - Mock Service Worker library
+
+After installing, initialize the service worker in the public directory:
+
+```bash
+npx msw init ./public --save
+```
+
+This creates `public/mockServiceWorker.js` and adds `msw.workerDirectory` to `package.json`.
+
+Create the directory structure for mocks:
+
+```
+src/
+└── mocks/
+    ├── handlers.ts
+    ├── browser.ts
+    └── server.ts
+```
+
+Create request handlers `src/mocks/handlers.ts`:
+
+```typescript
+import { http, HttpResponse } from 'msw';
+
+export const handlers = [
+  http.get('/api/users', () => {
+    return HttpResponse.json([
+      { id: 1, name: 'John Doe' },
+      { id: 2, name: 'Jane Smith' },
+    ]);
+  }),
+
+  http.post('/api/users', async ({ request }) => {
+    const newUser = await request.json();
+    return HttpResponse.json(newUser, { status: 201 });
+  }),
+
+  http.get('/api/users/:id', ({ params }) => {
+    const { id } = params;
+    return HttpResponse.json({ id: Number(id), name: 'John Doe' });
+  }),
+];
+```
+
+Create browser worker setup `src/mocks/browser.ts`:
+
+```typescript
+import { setupWorker } from 'msw/browser';
+import { handlers } from './handlers';
+
+export const worker = setupWorker(...handlers);
+```
+
+Create server setup for Node.js/tests `src/mocks/server.ts`:
+
+```typescript
+import { setupServer } from 'msw/node';
+import { handlers } from './handlers';
+
+export const server = setupServer(...handlers);
+```
+
+To start the worker in development, update `src/main.tsx`:
+
+```typescript
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App';
+import './index.css';
+
+async function enableMocking() {
+  if (import.meta.env.DEV) {
+    const { worker } = await import('./mocks/browser');
+    return worker.start({
+      onUnhandledRequest: 'bypass',
+    });
+  }
+}
+
+enableMocking().then(() => {
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <App />
+    </StrictMode>
+  );
+});
+```
+
+For unit tests with Vitest, update `src/test/setup.ts`:
+
+```typescript
+import '@testing-library/jest-dom/vitest';
+import { beforeAll, afterEach, afterAll } from 'vitest';
+import { server } from '../mocks/server';
+
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+```
+
+Example test using mocked API:
+
+```typescript
+import { render, screen, waitFor } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
+import { UserList } from './UserList';
+
+describe('UserList', () => {
+  it('displays users from the API', async () => {
+    render(<UserList />);
+
+    await waitFor(() => {
+      expect(screen.getByText('John Doe')).toBeInTheDocument();
+      expect(screen.getByText('Jane Smith')).toBeInTheDocument();
+    });
+  });
+});
+```
+
+To override handlers for specific tests:
+
+```typescript
+import { http, HttpResponse } from 'msw';
+import { server } from '../mocks/server';
+
+it('handles API error', async () => {
+  server.use(
+    http.get('/api/users', () => {
+      return HttpResponse.json({ error: 'Server error' }, { status: 500 });
+    })
+  );
+
+  render(<UserList />);
+
+  await waitFor(() => {
+    expect(screen.getByText('Error loading users')).toBeInTheDocument();
+  });
+});
+```
+
 Create a feature branch for this work off of the main branch.
 Commit the changes with a descriptive message.
 Create a PR from the feature branch that will be merged into the main branch after review.
