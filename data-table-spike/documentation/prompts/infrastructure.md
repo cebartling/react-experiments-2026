@@ -151,7 +151,121 @@ Create a PR from the feature branch that will be merged into the main branch aft
 
 Install Cucumber.js and Playwright for acceptance testing.
 Configure Cucumber.js with Playwright as the test runner.
-Add the following dev dependencies: "@cucumber/cucumber", "@cucumber/playwright", "playwright", "ts-node", "tsx".
+
+Add the following dev dependencies:
+
+- `@cucumber/cucumber` - BDD testing framework
+- `@cucumber/playwright` - Playwright integration for Cucumber
+- `playwright` - Browser automation library
+- `ts-node` - TypeScript execution
+- `tsx` - Fast TypeScript execution with ESM support
+
+Create the directory structure for acceptance tests:
+
+```
+features/
+├── step_definitions/
+├── support/
+reports/
+└── cucumber/
+scripts/
+```
+
+Create a Cucumber configuration file `cucumber.js` in the root directory:
+
+```javascript
+export default {
+  requireModule: ['tsx'],
+  require: ['features/**/*.ts'],
+  format: ['progress-bar', 'html:reports/cucumber/report.html'],
+  formatOptions: { snippetInterface: 'async-await' },
+  publishQuiet: true,
+};
+```
+
+Create a Playwright World class `features/support/world.ts`:
+
+```typescript
+import { World, setWorldConstructor, IWorldOptions } from '@cucumber/cucumber';
+import { Browser, BrowserContext, Page, chromium } from 'playwright';
+
+export class PlaywrightWorld extends World {
+  browser!: Browser;
+  context!: BrowserContext;
+  page!: Page;
+
+  constructor(options: IWorldOptions) {
+    super(options);
+  }
+
+  async init(): Promise<void> {
+    this.browser = await chromium.launch({
+      headless: true,
+    });
+    this.context = await this.browser.newContext();
+    this.page = await this.context.newPage();
+  }
+
+  async cleanup(): Promise<void> {
+    await this.page?.close();
+    await this.context?.close();
+    await this.browser?.close();
+  }
+}
+
+setWorldConstructor(PlaywrightWorld);
+```
+
+Create Before/After hooks `features/support/hooks.ts`:
+
+```typescript
+import { Before, After, Status } from '@cucumber/cucumber';
+import { PlaywrightWorld } from './world';
+
+Before(async function (this: PlaywrightWorld) {
+  await this.init();
+});
+
+After(async function (this: PlaywrightWorld, scenario) {
+  if (scenario.result?.status === Status.FAILED) {
+    const screenshot = await this.page.screenshot();
+    this.attach(screenshot, 'image/png');
+  }
+  await this.cleanup();
+});
+```
+
+Create an example feature file `features/example.feature`:
+
+```gherkin
+Feature: Example acceptance test
+  As a user
+  I want to verify the acceptance testing setup works
+  So that I can write end-to-end tests
+
+  Scenario: Application loads successfully
+    Given I navigate to the application
+    Then I should see the application loaded
+```
+
+Create example step definitions `features/step_definitions/example.steps.ts`:
+
+```typescript
+import { Given, Then } from '@cucumber/cucumber';
+import { expect } from '@playwright/test';
+import { PlaywrightWorld } from '../support/world';
+
+Given('I navigate to the application', async function (this: PlaywrightWorld) {
+  await this.page.goto('http://localhost:5173');
+});
+
+Then('I should see the application loaded', async function (this: PlaywrightWorld) {
+  await expect(this.page).toHaveTitle(/Vite \+ React/);
+});
+```
+
+Create an HTML report generator script `scripts/generate-cucumber-report.ts` that reads JSON output and generates a styled HTML report.
+
 Add necessary scripts to `package.json` to run acceptance tests:
 
 ```json
@@ -163,6 +277,13 @@ Add necessary scripts to `package.json` to run acceptance tests:
     "test:acceptance:html": "npm run test:acceptance:report && npm run report:generate"
   }
 }
+```
+
+Update `.gitignore` to exclude reports directory:
+
+```
+# Test reports
+reports/
 ```
 
 Create a feature branch for this work off of the main branch.
