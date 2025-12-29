@@ -9,11 +9,11 @@
 export const queryKeys = {
   stocks: {
     all: ['stocks'] as const,
-    lists: () => [...queryKeys.stocks.all, 'list'] as const,
+    listBase: () => [...queryKeys.stocks.all, 'list'] as const,
     list: (filters?: { search?: string; sort?: string }) =>
-      [...queryKeys.stocks.lists(), filters] as const,
-    details: () => [...queryKeys.stocks.all, 'detail'] as const,
-    detail: (symbol: string) => [...queryKeys.stocks.details(), symbol] as const,
+      [...queryKeys.stocks.listBase(), filters] as const,
+    detailBase: () => [...queryKeys.stocks.all, 'detail'] as const,
+    detail: (symbol: string) => [...queryKeys.stocks.detailBase(), symbol] as const,
   },
 } as const;
 
