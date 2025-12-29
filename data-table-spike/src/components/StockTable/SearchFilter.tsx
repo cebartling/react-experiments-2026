@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 
 /**
  * Props for the SearchFilter component.
@@ -21,6 +21,12 @@ export function SearchFilter({
   debounceMs = 300,
 }: SearchFilterProps) {
   const [localValue, setLocalValue] = useState(value);
+  const onChangeRef = useRef(onChange);
+
+  // Keep ref up to date without triggering effects
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  });
 
   useEffect(() => {
     setLocalValue(value);
@@ -29,12 +35,12 @@ export function SearchFilter({
   useEffect(() => {
     const timer = setTimeout(() => {
       if (localValue !== value) {
-        onChange(localValue);
+        onChangeRef.current(localValue);
       }
     }, debounceMs);
 
     return () => clearTimeout(timer);
-  }, [localValue, value, onChange, debounceMs]);
+  }, [localValue, value, debounceMs]);
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setLocalValue(e.target.value);
@@ -42,8 +48,8 @@ export function SearchFilter({
 
   const handleClear = useCallback(() => {
     setLocalValue('');
-    onChange('');
-  }, [onChange]);
+    onChangeRef.current('');
+  }, []);
 
   return (
     <div className="search-filter">
