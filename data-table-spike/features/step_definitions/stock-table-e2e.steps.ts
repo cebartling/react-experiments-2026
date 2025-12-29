@@ -227,7 +227,7 @@ Then('I should see {string}', async function (this: PlaywrightWorld, text: strin
   await expect(element).toBeVisible();
 });
 
-Then('the search input should be empty', async function (this: PlaywrightWorld) {
+Then('the search filter should be cleared', async function (this: PlaywrightWorld) {
   const searchInput = this.page.locator('input[placeholder*="Search"]');
   await expect(searchInput).toHaveValue('');
 });

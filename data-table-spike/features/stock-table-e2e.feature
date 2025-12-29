@@ -103,7 +103,7 @@ Feature: Stock Table End-to-End Tests
     And I have filtered by "Apple"
     When I clear the search filter
     Then I should see 10 stock rows
-    And the search input should be empty
+    And the search filter should be cleared
 
   @e2e @accessibility
   Scenario: Table has proper accessibility attributes
