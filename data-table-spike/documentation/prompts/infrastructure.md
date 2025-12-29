@@ -882,11 +882,6 @@ Add the following dependencies:
 - `@tanstack/react-query` - Data fetching and caching for table data
 - `@tanstack/query-core` - Core logic for TanStack Query
 
-**Note:** The following packages do not exist in the npm registry and should not be included:
-
-- `@tanstack/react-resize-observer` - Does not exist. For resize observer functionality, use the native `ResizeObserver` API or a library like `@react-hook/resize-observer`.
-- `@tanstack/react-popper` - Does not exist. For popper/tooltip functionality, use `@floating-ui/react` or `@popperjs/core`.
-
 Create a feature branch for this work off of the main branch.
 Commit the changes with a descriptive message.
 Create a PR from the feature branch that will be merged into the main branch after review.
