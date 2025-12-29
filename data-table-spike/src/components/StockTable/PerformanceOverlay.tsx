@@ -18,8 +18,16 @@ interface PerformanceOverlayProps {
  *
  * @example
  * ```tsx
+ * import { Profiler } from 'react';
+ * 
  * const metrics = useVirtualizationMetrics(renderedRows, totalRows);
- * <PerformanceOverlay metrics={metrics} visible={isDevelopment} />
+ * 
+ * return (
+ *   <Profiler id="table-body" onRender={metrics.onRenderCallback}>
+ *     <TableBody />
+ *     <PerformanceOverlay metrics={metrics} visible={isDevelopment} />
+ *   </Profiler>
+ * );
  * ```
  */
 export function PerformanceOverlay({ metrics, visible = false }: PerformanceOverlayProps) {
