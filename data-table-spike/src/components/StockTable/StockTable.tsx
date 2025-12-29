@@ -6,7 +6,7 @@ import {
   getFilteredRowModel,
   type SortingState,
 } from '@tanstack/react-table';
-import { useStockData } from '../../hooks/useStockData';
+import { useStockData } from '../../hooks';
 import { stockColumns } from './columns';
 import { SearchFilter } from './SearchFilter';
 import { TableHeader } from './TableHeader';
