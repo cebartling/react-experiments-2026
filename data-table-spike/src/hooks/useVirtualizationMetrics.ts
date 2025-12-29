@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 /**
  * Metrics for virtualization performance monitoring.
@@ -98,7 +98,7 @@ export function useVirtualizationMetrics(
   }, []);
 
   // Profiler callback for measuring actual render time
-  const onRenderCallback = useRef(
+  const onRenderCallback = useCallback(
     (
       _id: string,
       _phase: 'mount' | 'update',
@@ -114,8 +114,9 @@ export function useVirtualizationMetrics(
       const avg =
         renderTimesRef.current.reduce((a, b) => a + b, 0) / renderTimesRef.current.length;
       setAvgRenderTime(Math.round(avg * 100) / 100);
-    }
-  ).current;
+    },
+    []
+  );
 
   const renderRatio = totalRows > 0 ? Math.round((renderedRows / totalRows) * 100) : 0;
 
