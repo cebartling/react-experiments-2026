@@ -151,18 +151,225 @@ Create a PR from the feature branch that will be merged into the main branch aft
 
 Install Cucumber.js and Playwright for acceptance testing.
 Configure Cucumber.js with Playwright as the test runner.
-Add the following dev dependencies: "@cucumber/cucumber", "@cucumber/playwright", "playwright", "ts-node", "tsx".
+
+Add the following dev dependencies:
+
+- `@cucumber/cucumber` - BDD testing framework (v12+ required for ESM support)
+- `playwright` - Browser automation library
+- `@playwright/test` - Playwright test assertions
+- `multiple-cucumber-html-reporter` - HTML report generator
+- `ts-node` - TypeScript execution
+- `tsx` - Fast TypeScript execution with ESM support
+
+After installing dependencies, install Playwright browsers:
+
+```bash
+npx playwright install
+```
+
+Create the directory structure for acceptance tests:
+
+```
+features/
+├── step_definitions/
+├── support/
+reports/
+└── cucumber/
+scripts/
+```
+
+Create a Cucumber configuration file `cucumber.js` in the root directory:
+
+```javascript
+export default {
+  import: ['features/**/*.ts'],
+  format: ['progress-bar', 'html:reports/cucumber/report.html'],
+  formatOptions: { snippetInterface: 'async-await' },
+  publishQuiet: true,
+};
+```
+
+Create a Playwright World class `features/support/world.ts`:
+
+```typescript
+import { World, setWorldConstructor, IWorldOptions } from '@cucumber/cucumber';
+import { Browser, BrowserContext, Page, chromium } from 'playwright';
+
+export class PlaywrightWorld extends World {
+  browser!: Browser;
+  context!: BrowserContext;
+  page!: Page;
+
+  constructor(options: IWorldOptions) {
+    super(options);
+  }
+
+  async init(): Promise<void> {
+    this.browser = await chromium.launch({
+      headless: true,
+    });
+    this.context = await this.browser.newContext();
+    this.page = await this.context.newPage();
+  }
+
+  async cleanup(): Promise<void> {
+    await this.page?.close();
+    await this.context?.close();
+    await this.browser?.close();
+  }
+}
+
+setWorldConstructor(PlaywrightWorld);
+```
+
+Create Before/After hooks `features/support/hooks.ts`:
+
+```typescript
+import { Before, After, Status } from '@cucumber/cucumber';
+import { PlaywrightWorld } from './world';
+
+Before(async function (this: PlaywrightWorld) {
+  await this.init();
+});
+
+After(async function (this: PlaywrightWorld, scenario) {
+  if (scenario.result?.status === Status.FAILED) {
+    const screenshot = await this.page.screenshot();
+    this.attach(screenshot, 'image/png');
+  }
+  await this.cleanup();
+});
+```
+
+Create an example feature file `features/example.feature`:
+
+```gherkin
+Feature: Example acceptance test
+  As a user
+  I want to verify the acceptance testing setup works
+  So that I can write end-to-end tests
+
+  Scenario: Application loads successfully
+    Given I navigate to the application
+    Then I should see the application loaded
+```
+
+Create example step definitions `features/step_definitions/example.steps.ts`:
+
+```typescript
+import { Given, Then } from '@cucumber/cucumber';
+import { expect } from '@playwright/test';
+import { PlaywrightWorld } from '../support/world';
+
+Given('I navigate to the application', async function (this: PlaywrightWorld) {
+  await this.page.goto('http://localhost:5173');
+});
+
+Then('I should see the application loaded', async function (this: PlaywrightWorld) {
+  await expect(this.page).toHaveTitle(/data-table-spike/);
+});
+```
+
+Create an HTML report generator script `scripts/generate-cucumber-report.ts` using `multiple-cucumber-html-reporter`:
+
+```typescript
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import reporter from 'multiple-cucumber-html-reporter';
+
+async function main(): Promise<void> {
+  const jsonPath = path.join(process.cwd(), 'reports/cucumber/report.json');
+
+  if (!fs.existsSync(jsonPath)) {
+    console.error('Error: Cucumber JSON report not found at', jsonPath);
+    console.error('Run "npm run test:acceptance:report" first to generate the JSON report.');
+    process.exit(1);
+  }
+
+  reporter.generate({
+    jsonDir: 'reports/cucumber',
+    reportPath: 'reports/cucumber/html',
+    pageTitle: 'Data Table Spike - Acceptance Test Report',
+    reportName: 'Acceptance Test Report',
+    displayDuration: true,
+    displayReportTime: true,
+    metadata: {
+      browser: {
+        name: 'chromium',
+        version: 'latest',
+      },
+      device: 'Local Machine',
+      platform: {
+        name: process.platform,
+        version: process.version,
+      },
+    },
+  });
+
+  console.log('HTML report generated: reports/cucumber/html/index.html');
+}
+
+main().catch((error) => {
+  console.error('Error generating report:', error);
+  process.exit(1);
+});
+```
+
+Create a type declaration file `scripts/multiple-cucumber-html-reporter.d.ts` for TypeScript support:
+
+```typescript
+declare module 'multiple-cucumber-html-reporter' {
+  interface ReportMetadata {
+    browser?: { name: string; version: string };
+    device?: string;
+    platform?: { name: string; version: string };
+  }
+
+  interface ReportOptions {
+    jsonDir: string;
+    reportPath: string;
+    pageTitle?: string;
+    reportName?: string;
+    displayDuration?: boolean;
+    displayReportTime?: boolean;
+    metadata?: ReportMetadata;
+  }
+
+  const reporter: { generate(options: ReportOptions): void };
+  export default reporter;
+}
+```
+
 Add necessary scripts to `package.json` to run acceptance tests:
 
 ```json
 {
   "scripts": {
-    "test:acceptance": "NODE_OPTIONS='--import tsx' cucumber-js --import 'features/**/*.ts'",
-    "test:acceptance:report": "NODE_OPTIONS='--import tsx' cucumber-js --import 'features/**/*.ts' --format json:reports/cucumber/report.json",
+    "test:acceptance": "NODE_OPTIONS='--import tsx' cucumber-js",
+    "test:acceptance:report": "NODE_OPTIONS='--import tsx' cucumber-js --format json:reports/cucumber/report.json",
     "report:generate": "NODE_OPTIONS='--import tsx' npx tsx scripts/generate-cucumber-report.ts",
     "test:acceptance:html": "npm run test:acceptance:report && npm run report:generate"
   }
 }
+```
+
+Note: The `cucumber.js` configuration file specifies the import paths, so they don't need to be repeated in the CLI commands.
+
+To run acceptance tests, start the dev server first:
+
+```bash
+# Terminal 1: Start dev server
+npm run dev
+
+# Terminal 2: Run acceptance tests
+npm run test:acceptance
+```
+
+Update `.gitignore` to exclude reports directory:
+
+```
+# Test reports
+reports/
 ```
 
 Create a feature branch for this work off of the main branch.

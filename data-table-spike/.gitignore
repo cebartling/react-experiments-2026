@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Test reports
+reports/
+
+# Coverage directory used by tools like istanbul
+coverage/
