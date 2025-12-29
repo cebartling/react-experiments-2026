@@ -378,7 +378,84 @@ Create a PR from the feature branch that will be merged into the main branch aft
 
 ## Zustand
 
-Install Zustand for state stores.
+Install Zustand for state management.
+
+Zustand is a lightweight, flexible state management library for React that provides a simple API with minimal boilerplate.
+
+Add the following dependency:
+
+- `zustand` - Lightweight state management library
+
+Create the directory structure for stores:
+
+```
+src/
+└── stores/
+```
+
+Example store `src/stores/useCounterStore.ts`:
+
+```typescript
+import { create } from 'zustand';
+
+interface CounterState {
+  count: number;
+  increment: () => void;
+  decrement: () => void;
+  reset: () => void;
+}
+
+export const useCounterStore = create<CounterState>((set) => ({
+  count: 0,
+  increment: () => set((state) => ({ count: state.count + 1 })),
+  decrement: () => set((state) => ({ count: state.count - 1 })),
+  reset: () => set({ count: 0 }),
+}));
+```
+
+Example usage in a component:
+
+```tsx
+import { useCounterStore } from '../stores/useCounterStore';
+
+function Counter() {
+  const { count, increment, decrement, reset } = useCounterStore();
+
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={increment}>+</button>
+      <button onClick={decrement}>-</button>
+      <button onClick={reset}>Reset</button>
+    </div>
+  );
+}
+```
+
+For stores with persistence, use the `persist` middleware:
+
+```typescript
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+interface SettingsState {
+  theme: 'light' | 'dark';
+  setTheme: (theme: 'light' | 'dark') => void;
+}
+
+export const useSettingsStore = create<SettingsState>()(
+  persist(
+    (set) => ({
+      theme: 'light',
+      setTheme: (theme) => set({ theme }),
+    }),
+    {
+      name: 'settings-storage',
+    }
+  )
+);
+```
+
 Create a feature branch for this work off of the main branch.
 Commit the changes with a descriptive message.
 Create a PR from the feature branch that will be merged into the main branch after review.
