@@ -13,8 +13,8 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:acceptance": "NODE_OPTIONS='--import tsx' cucumber-js --import 'features/**/*.ts'",
-    "test:acceptance:report": "NODE_OPTIONS='--import tsx' cucumber-js --import 'features/**/*.ts' --format json:reports/cucumber/report.json",
+    "test:acceptance": "NODE_OPTIONS='--import tsx' cucumber-js",
+    "test:acceptance:report": "NODE_OPTIONS='--import tsx' cucumber-js --format json:reports/cucumber/report.json",
     "report:generate": "NODE_OPTIONS='--import tsx' npx tsx scripts/generate-cucumber-report.ts",
     "test:acceptance:html": "npm run test:acceptance:report && npm run report:generate"
   },
@@ -24,9 +24,9 @@
     "zod": "^4.2.1"
   },
   "devDependencies": {
-    "@cucumber/cucumber": "^7.3.2",
-    "@cucumber/playwright": "^3.1.0",
+    "@cucumber/cucumber": "^12.5.0",
     "@eslint/js": "^9.39.1",
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/cli": "^4.1.18",
     "@tailwindcss/vite": "^4.1.18",
     "@testing-library/jest-dom": "^6.9.1",
