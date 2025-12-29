@@ -1,79 +1,87 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { axe } from 'vitest-axe';
+import { vi } from 'vitest';
 import App from './App';
 
+function createTestQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
+}
+
+function renderWithProviders(initialRoute = '/') {
+  const queryClient = createTestQueryClient();
+  return render(
+    <MemoryRouter initialEntries={[initialRoute]}>
+      <QueryClientProvider client={queryClient}>
+        <App />
+      </QueryClientProvider>
+    </MemoryRouter>
+  );
+}
+
+vi.mock('./hooks/useStockData', () => ({
+  useStockData: vi.fn(() => ({
+    data: [],
+    isLoading: false,
+    isError: false,
+    error: null,
+    refetch: vi.fn(),
+    isPending: false,
+    isSuccess: true,
+    status: 'success',
+    fetchStatus: 'idle',
+  })),
+}));
+
 describe('App', () => {
-  it('renders the heading', () => {
-    render(<App />);
+  describe('Home page', () => {
+    it('renders the heading', () => {
+      renderWithProviders('/');
 
-    expect(screen.getByRole('heading', { name: /vite \+ react/i })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /data table spike/i })).toBeInTheDocument();
+    });
+
+    it('renders navigation link to stocks page', () => {
+      renderWithProviders('/');
+
+      const stocksLink = screen.getByRole('link', { name: /stock table/i });
+      expect(stocksLink).toHaveAttribute('href', '/stocks-read-only');
+    });
+
+    it('has no accessibility violations on home page', async () => {
+      const { container } = renderWithProviders('/');
+
+      const results = await axe(container);
+
+      expect(results).toHaveNoViolations();
+    });
   });
 
-  it('renders the Vite logo with link', () => {
-    render(<App />);
+  describe('Navigation', () => {
+    it('navigates to stocks page when link is clicked', async () => {
+      const user = userEvent.setup();
+      renderWithProviders('/');
 
-    const viteLink = screen.getByRole('link', { name: /vite logo/i });
-    expect(viteLink).toHaveAttribute('href', 'https://vite.dev');
-    expect(viteLink).toHaveAttribute('target', '_blank');
+      const stocksLink = screen.getByRole('link', { name: /stock table/i });
+      await user.click(stocksLink);
+
+      expect(screen.getByText(/0 stocks/i)).toBeInTheDocument();
+    });
   });
 
-  it('renders the React logo with link', () => {
-    render(<App />);
+  describe('Stocks page', () => {
+    it('renders stock table on /stocks-read-only route', () => {
+      renderWithProviders('/stocks-read-only');
 
-    const reactLink = screen.getByRole('link', { name: /react logo/i });
-    expect(reactLink).toHaveAttribute('href', 'https://react.dev');
-    expect(reactLink).toHaveAttribute('target', '_blank');
-  });
-
-  it('renders the counter button with initial count of 0', () => {
-    render(<App />);
-
-    expect(screen.getByRole('button', { name: /count is 0/i })).toBeInTheDocument();
-  });
-
-  it('increments the counter when button is clicked', async () => {
-    const user = userEvent.setup();
-    render(<App />);
-
-    const button = screen.getByRole('button', { name: /count is 0/i });
-    await user.click(button);
-
-    expect(screen.getByRole('button', { name: /count is 1/i })).toBeInTheDocument();
-  });
-
-  it('increments the counter multiple times', async () => {
-    const user = userEvent.setup();
-    render(<App />);
-
-    const button = screen.getByRole('button', { name: /count is 0/i });
-    await user.click(button);
-    await user.click(button);
-    await user.click(button);
-
-    expect(screen.getByRole('button', { name: /count is 3/i })).toBeInTheDocument();
-  });
-
-  it('renders the HMR instruction text', () => {
-    render(<App />);
-
-    expect(screen.getByText(/edit/i)).toBeInTheDocument();
-    expect(screen.getByText('src/App.tsx')).toBeInTheDocument();
-  });
-
-  it('renders the documentation link instruction', () => {
-    render(<App />);
-
-    expect(
-      screen.getByText(/click on the vite and react logos to learn more/i)
-    ).toBeInTheDocument();
-  });
-
-  it('has no accessibility violations', async () => {
-    const { container } = render(<App />);
-
-    const results = await axe(container);
-
-    expect(results).toHaveNoViolations();
+      expect(screen.getByText(/0 stocks/i)).toBeInTheDocument();
+    });
   });
 });
