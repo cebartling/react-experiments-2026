@@ -282,7 +282,11 @@ describe('stockApi', () => {
       }
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('[StockAPI] Error fetching stock INVALID')
+        expect.stringContaining('[StockAPI] Error fetching stock INVALID'),
+        expect.objectContaining({
+          statusCode: 404,
+          code: 'NOT_FOUND',
+        })
       );
     });
   });

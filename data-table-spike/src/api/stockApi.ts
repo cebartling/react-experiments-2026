@@ -59,6 +59,39 @@ async function handleResponse<T>(response: Response): Promise<T> {
   return response.json();
 }
 
+interface ErrorContext {
+  operation: string;
+  details?: Record<string, unknown>;
+}
+
+/**
+ * Normalizes errors into StockApiError and logs them
+ */
+function handleApiError(error: unknown, context: ErrorContext): never {
+  if (error instanceof StockApiError) {
+    console.error(`[StockAPI] ${context.operation}: ${error.message}`, {
+      statusCode: error.statusCode,
+      code: error.code,
+      ...context.details,
+    });
+    throw error;
+  }
+
+  if (error instanceof DOMException && error.name === 'AbortError') {
+    const timeoutError = new StockApiError('Request timeout', 0, 'TIMEOUT');
+    console.error(`[StockAPI] ${context.operation}: ${timeoutError.message}`, context.details);
+    throw timeoutError;
+  }
+
+  const networkError = new StockApiError(
+    error instanceof Error ? error.message : 'Unknown error',
+    0,
+    'NETWORK_ERROR'
+  );
+  console.error(`[StockAPI] ${context.operation}: ${networkError.message}`, context.details);
+  throw networkError;
+}
+
 /**
  * Fetches all stocks from the API
  */
@@ -74,23 +107,7 @@ export async function fetchStocks(): Promise<Stock[]> {
     const data = await handleResponse<StockApiResponse>(response);
     return data.data;
   } catch (error) {
-    if (error instanceof StockApiError) {
-      console.error(`[StockAPI] Error fetching stocks: ${error.message}`, {
-        statusCode: error.statusCode,
-        code: error.code,
-      });
-      throw error;
-    }
-
-    if (error instanceof DOMException && error.name === 'AbortError') {
-      throw new StockApiError('Request timeout', 0, 'TIMEOUT');
-    }
-
-    throw new StockApiError(
-      error instanceof Error ? error.message : 'Unknown error',
-      0,
-      'NETWORK_ERROR'
-    );
+    handleApiError(error, { operation: 'Error fetching stocks' });
   }
 }
 
@@ -108,15 +125,6 @@ export async function fetchStockBySymbol(symbol: string): Promise<Stock> {
 
     return await handleResponse<Stock>(response);
   } catch (error) {
-    if (error instanceof StockApiError) {
-      console.error(`[StockAPI] Error fetching stock ${symbol}: ${error.message}`);
-      throw error;
-    }
-
-    throw new StockApiError(
-      error instanceof Error ? error.message : 'Unknown error',
-      0,
-      'NETWORK_ERROR'
-    );
+    handleApiError(error, { operation: `Error fetching stock ${symbol}` });
   }
 }
