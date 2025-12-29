@@ -8,21 +8,29 @@ import './index.css';
 
 async function enableMocking() {
   if (import.meta.env.DEV) {
-    const { worker } = await import('./mocks/browser');
-    return worker.start({
-      onUnhandledRequest: 'bypass',
-    });
+    try {
+      const { worker } = await import('./mocks/browser');
+      return worker.start({
+        onUnhandledRequest: 'bypass',
+      });
+    } catch (error) {
+      console.error('Failed to enable API mocking:', error);
+    }
   }
 }
 
-enableMocking().then(() => {
-  createRoot(document.getElementById('root')!).render(
-    <StrictMode>
-      <BrowserRouter>
-        <QueryProvider>
-          <App />
-        </QueryProvider>
-      </BrowserRouter>
-    </StrictMode>
-  );
-});
+enableMocking()
+  .then(() => {
+    createRoot(document.getElementById('root')!).render(
+      <StrictMode>
+        <BrowserRouter>
+          <QueryProvider>
+            <App />
+          </QueryProvider>
+        </BrowserRouter>
+      </StrictMode>
+    );
+  })
+  .catch((error) => {
+    console.error('Application initialization failed during mocking setup:', error);
+  });
