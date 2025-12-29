@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, act, fireEvent, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { UseQueryResult } from '@tanstack/react-query';
 import { StockTable } from '../StockTable';
 import type { Stock } from '../../../types/stock';
 
@@ -67,6 +68,39 @@ function renderWithProviders(ui: React.ReactElement) {
   return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
 }
 
+function createMockQueryResult(
+  overrides: Partial<UseQueryResult<Stock[], Error>>
+): UseQueryResult<Stock[], Error> {
+  return {
+    data: undefined,
+    error: null,
+    isError: false,
+    isLoading: false,
+    isPending: false,
+    isLoadingError: false,
+    isRefetchError: false,
+    isSuccess: false,
+    status: 'pending',
+    dataUpdatedAt: 0,
+    errorUpdatedAt: 0,
+    failureCount: 0,
+    failureReason: null,
+    errorUpdateCount: 0,
+    isFetched: false,
+    isFetchedAfterMount: false,
+    isFetching: false,
+    isInitialLoading: false,
+    isPaused: false,
+    isPlaceholderData: false,
+    isRefetching: false,
+    isStale: false,
+    refetch: vi.fn(),
+    fetchStatus: 'idle',
+    promise: Promise.resolve([] as Stock[]),
+    ...overrides,
+  } as UseQueryResult<Stock[], Error>;
+}
+
 describe('StockTable', () => {
   beforeEach(() => {
     vi.resetAllMocks();
@@ -78,13 +112,17 @@ describe('StockTable', () => {
 
   describe('Loading state', () => {
     it('should render loading state when data is loading', () => {
-      mockedUseStockData.mockReturnValue({
-        data: undefined,
-        isLoading: true,
-        isError: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+      mockedUseStockData.mockReturnValue(
+        createMockQueryResult({
+          data: undefined,
+          isLoading: true,
+          isPending: true,
+          isError: false,
+          error: null,
+          status: 'pending',
+          fetchStatus: 'fetching',
+        })
+      );
 
       renderWithProviders(<StockTable />);
 
@@ -94,13 +132,15 @@ describe('StockTable', () => {
 
   describe('Error state', () => {
     it('should render error state when there is an error', () => {
-      mockedUseStockData.mockReturnValue({
-        data: undefined,
-        isLoading: false,
-        isError: true,
-        error: new Error('Network error'),
-        refetch: vi.fn(),
-      });
+      mockedUseStockData.mockReturnValue(
+        createMockQueryResult({
+          data: undefined,
+          isLoading: false,
+          isError: true,
+          error: new Error('Network error'),
+          status: 'error',
+        })
+      );
 
       renderWithProviders(<StockTable />);
 
@@ -110,13 +150,16 @@ describe('StockTable', () => {
 
     it('should call refetch when retry button is clicked', async () => {
       const refetch = vi.fn();
-      mockedUseStockData.mockReturnValue({
-        data: undefined,
-        isLoading: false,
-        isError: true,
-        error: new Error('Network error'),
-        refetch,
-      });
+      mockedUseStockData.mockReturnValue(
+        createMockQueryResult({
+          data: undefined,
+          isLoading: false,
+          isError: true,
+          error: new Error('Network error'),
+          refetch,
+          status: 'error',
+        })
+      );
 
       const user = userEvent.setup();
       renderWithProviders(<StockTable />);
@@ -129,13 +172,16 @@ describe('StockTable', () => {
 
   describe('Data display', () => {
     it('should render table with stock data', () => {
-      mockedUseStockData.mockReturnValue({
-        data: mockStocks,
-        isLoading: false,
-        isError: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+      mockedUseStockData.mockReturnValue(
+        createMockQueryResult({
+          data: mockStocks,
+          isLoading: false,
+          isError: false,
+          error: null,
+          isSuccess: true,
+          status: 'success',
+        })
+      );
 
       renderWithProviders(<StockTable />);
 
@@ -145,13 +191,16 @@ describe('StockTable', () => {
     });
 
     it('should display stock count', () => {
-      mockedUseStockData.mockReturnValue({
-        data: mockStocks,
-        isLoading: false,
-        isError: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+      mockedUseStockData.mockReturnValue(
+        createMockQueryResult({
+          data: mockStocks,
+          isLoading: false,
+          isError: false,
+          error: null,
+          isSuccess: true,
+          status: 'success',
+        })
+      );
 
       renderWithProviders(<StockTable />);
 
@@ -159,13 +208,16 @@ describe('StockTable', () => {
     });
 
     it('should render all column headers', () => {
-      mockedUseStockData.mockReturnValue({
-        data: mockStocks,
-        isLoading: false,
-        isError: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+      mockedUseStockData.mockReturnValue(
+        createMockQueryResult({
+          data: mockStocks,
+          isLoading: false,
+          isError: false,
+          error: null,
+          isSuccess: true,
+          status: 'success',
+        })
+      );
 
       renderWithProviders(<StockTable />);
 
@@ -182,13 +234,16 @@ describe('StockTable', () => {
   describe('Filtering', () => {
     it('should filter stocks by search input', async () => {
       vi.useFakeTimers();
-      mockedUseStockData.mockReturnValue({
-        data: mockStocks,
-        isLoading: false,
-        isError: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+      mockedUseStockData.mockReturnValue(
+        createMockQueryResult({
+          data: mockStocks,
+          isLoading: false,
+          isError: false,
+          error: null,
+          isSuccess: true,
+          status: 'success',
+        })
+      );
 
       renderWithProviders(<StockTable />);
 
@@ -209,13 +264,16 @@ describe('StockTable', () => {
 
     it('should update stock count when filtering', async () => {
       vi.useFakeTimers();
-      mockedUseStockData.mockReturnValue({
-        data: mockStocks,
-        isLoading: false,
-        isError: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+      mockedUseStockData.mockReturnValue(
+        createMockQueryResult({
+          data: mockStocks,
+          isLoading: false,
+          isError: false,
+          error: null,
+          isSuccess: true,
+          status: 'success',
+        })
+      );
 
       renderWithProviders(<StockTable />);
 
@@ -236,13 +294,16 @@ describe('StockTable', () => {
 
     it('should show no stocks found when filter has no matches', async () => {
       vi.useFakeTimers();
-      mockedUseStockData.mockReturnValue({
-        data: mockStocks,
-        isLoading: false,
-        isError: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+      mockedUseStockData.mockReturnValue(
+        createMockQueryResult({
+          data: mockStocks,
+          isLoading: false,
+          isError: false,
+          error: null,
+          isSuccess: true,
+          status: 'success',
+        })
+      );
 
       renderWithProviders(<StockTable />);
 
@@ -263,13 +324,16 @@ describe('StockTable', () => {
 
   describe('Sorting', () => {
     it('should sort stocks when column header is clicked', async () => {
-      mockedUseStockData.mockReturnValue({
-        data: mockStocks,
-        isLoading: false,
-        isError: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+      mockedUseStockData.mockReturnValue(
+        createMockQueryResult({
+          data: mockStocks,
+          isLoading: false,
+          isError: false,
+          error: null,
+          isSuccess: true,
+          status: 'success',
+        })
+      );
 
       const user = userEvent.setup();
       renderWithProviders(<StockTable />);
@@ -285,13 +349,16 @@ describe('StockTable', () => {
 
   describe('Empty state', () => {
     it('should render no stocks found when data is empty', () => {
-      mockedUseStockData.mockReturnValue({
-        data: [],
-        isLoading: false,
-        isError: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+      mockedUseStockData.mockReturnValue(
+        createMockQueryResult({
+          data: [],
+          isLoading: false,
+          isError: false,
+          error: null,
+          isSuccess: true,
+          status: 'success',
+        })
+      );
 
       renderWithProviders(<StockTable />);
 

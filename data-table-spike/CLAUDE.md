@@ -50,6 +50,7 @@ Use JSDoc comments for all public interfaces, types, and exported functions:
 - **Exported Constants** - Document purpose and usage
 
 Example:
+
 ```typescript
 /**
  * Props for the SearchFilter component.

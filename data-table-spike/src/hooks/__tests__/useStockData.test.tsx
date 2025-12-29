@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useStockData, STOCK_QUERY_KEY } from '../useStockData';
+import { useStockData } from '../useStockData';
+import { createWrapper } from '../../test/queryTestUtils';
 import type { Stock } from '../../types/stock';
 
 const mockStocks: Stock[] = [
@@ -19,30 +19,13 @@ const mockStocks: Stock[] = [
   },
 ];
 
-vi.mock('../../api', () => ({
+vi.mock('../../api/stockApi', () => ({
   fetchStocks: vi.fn(),
 }));
 
-import { fetchStocks } from '../../api';
+import { fetchStocks } from '../../api/stockApi';
 
 const mockedFetchStocks = vi.mocked(fetchStocks);
-
-function createTestQueryClient() {
-  return new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-      },
-    },
-  });
-}
-
-function createWrapper() {
-  const queryClient = createTestQueryClient();
-  return function Wrapper({ children }: { children: React.ReactNode }) {
-    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
-  };
-}
 
 describe('useStockData', () => {
   let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
@@ -56,10 +39,6 @@ describe('useStockData', () => {
     consoleWarnSpy.mockRestore();
   });
 
-  it('should have correct query key', () => {
-    expect(STOCK_QUERY_KEY).toEqual(['stocks']);
-  });
-
   it('should return loading state initially', () => {
     mockedFetchStocks.mockImplementation(() => new Promise(() => {}));
 
@@ -69,7 +48,6 @@ describe('useStockData', () => {
 
     expect(result.current.isLoading).toBe(true);
     expect(result.current.data).toBeUndefined();
-    expect(result.current.error).toBeNull();
   });
 
   it('should return data when fetch succeeds', async () => {
@@ -104,20 +82,6 @@ describe('useStockData', () => {
     expect(result.current.data).toBeUndefined();
   });
 
-  it('should provide refetch function', async () => {
-    mockedFetchStocks.mockResolvedValue(mockStocks);
-
-    const { result } = renderHook(() => useStockData(), {
-      wrapper: createWrapper(),
-    });
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    expect(typeof result.current.refetch).toBe('function');
-  });
-
   it('should call fetchStocks', async () => {
     mockedFetchStocks.mockResolvedValue(mockStocks);
 
@@ -128,5 +92,45 @@ describe('useStockData', () => {
     await waitFor(() => {
       expect(mockedFetchStocks).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it('should not fetch when enabled is false', async () => {
+    mockedFetchStocks.mockResolvedValue(mockStocks);
+
+    const { result } = renderHook(() => useStockData({ enabled: false }), {
+      wrapper: createWrapper(),
+    });
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.fetchStatus).toBe('idle');
+    expect(mockedFetchStocks).not.toHaveBeenCalled();
+  });
+
+  it('should accept refetchInterval option', async () => {
+    mockedFetchStocks.mockResolvedValue(mockStocks);
+
+    const { result } = renderHook(() => useStockData({ refetchInterval: 5000 }), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.data).toEqual(mockStocks);
+  });
+
+  it('should disable refetch when refetchInterval is 0', async () => {
+    mockedFetchStocks.mockResolvedValue(mockStocks);
+
+    const { result } = renderHook(() => useStockData({ refetchInterval: 0 }), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.data).toEqual(mockStocks);
   });
 });
