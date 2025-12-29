@@ -27,7 +27,7 @@ export function useStock(symbol: string, options: UseStockOptions = {}) {
   return useQuery({
     queryKey: queryKeys.stocks.detail(symbol),
     queryFn: () => fetchStockBySymbol(symbol),
-    enabled: enabled && Boolean(symbol),
     ...queryOptions,
+    enabled: enabled && Boolean(symbol),
   });
 }
