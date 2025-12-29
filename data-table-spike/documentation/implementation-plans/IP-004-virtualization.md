@@ -511,7 +511,7 @@ Implement a hook to monitor virtualization performance.
 
 **File:** `src/hooks/useVirtualizationMetrics.ts`
 
-```typescript
+````typescript
 import { useEffect, useRef, useState, useCallback } from 'react';
 
 interface VirtualizationMetrics {
@@ -568,8 +568,7 @@ export function useVirtualizationMetrics(
       // Calculate FPS every 30 frames
       if (frameTimesRef.current.length % 30 === 0) {
         const avgFrameTime =
-          frameTimesRef.current.reduce((a, b) => a + b, 0) /
-          frameTimesRef.current.length;
+          frameTimesRef.current.reduce((a, b) => a + b, 0) / frameTimesRef.current.length;
         setFps(Math.round(1000 / avgFrameTime));
       }
 
@@ -592,14 +591,11 @@ export function useVirtualizationMetrics(
       renderTimesRef.current.shift();
     }
 
-    const avg =
-      renderTimesRef.current.reduce((a, b) => a + b, 0) /
-      renderTimesRef.current.length;
+    const avg = renderTimesRef.current.reduce((a, b) => a + b, 0) / renderTimesRef.current.length;
     setAvgRenderTime(Math.round(avg * 100) / 100);
   }, []);
 
-  const renderRatio =
-    totalRows > 0 ? Math.round((renderedRows / totalRows) * 100) : 0;
+  const renderRatio = totalRows > 0 ? Math.round((renderedRows / totalRows) * 100) : 0;
 
   return {
     fps,
@@ -609,7 +605,7 @@ export function useVirtualizationMetrics(
     avgRenderTime,
   };
 }
-```
+````
 
 ### Step 6: Create Debug Overlay Component
 
@@ -806,13 +802,13 @@ src/components/StockTable/
 
 ## Performance Benchmarks
 
-| Scenario | Without Virtualization | With Virtualization |
-|----------|----------------------|---------------------|
-| 100 rows | 16ms render | 8ms render |
-| 1,000 rows | 160ms render | 10ms render |
-| 10,000 rows | 1600ms+ render | 12ms render |
-| Scroll FPS (1K rows) | 15-30 FPS | 55-60 FPS |
-| Memory usage (10K rows) | 150MB+ | 20MB |
+| Scenario                | Without Virtualization | With Virtualization |
+| ----------------------- | ---------------------- | ------------------- |
+| 100 rows                | 16ms render            | 8ms render          |
+| 1,000 rows              | 160ms render           | 10ms render         |
+| 10,000 rows             | 1600ms+ render         | 12ms render         |
+| Scroll FPS (1K rows)    | 15-30 FPS              | 55-60 FPS           |
+| Memory usage (10K rows) | 150MB+                 | 20MB                |
 
 ## Acceptance Criteria
 

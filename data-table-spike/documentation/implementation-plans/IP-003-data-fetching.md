@@ -98,7 +98,7 @@ Implement the main hook for fetching stock data.
 
 **File:** `src/hooks/useStockData.ts`
 
-```typescript
+````typescript
 import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 import { fetchStocks } from '../api/stockApi';
 import { queryKeys } from '../lib/queryKeys';
@@ -113,10 +113,7 @@ interface UseStockDataOptions {
   /** Refetch interval in milliseconds (0 to disable) */
   refetchInterval?: number;
   /** Additional query options */
-  queryOptions?: Omit<
-    UseQueryOptions<Stock[], Error>,
-    'queryKey' | 'queryFn'
-  >;
+  queryOptions?: Omit<UseQueryOptions<Stock[], Error>, 'queryKey' | 'queryFn'>;
 }
 
 /**
@@ -147,7 +144,7 @@ export function useStockData(options: UseStockDataOptions = {}) {
     ...queryOptions,
   });
 }
-```
+````
 
 ### Step 4: Create Single Stock Hook
 
@@ -155,7 +152,7 @@ Implement a hook for fetching individual stock details.
 
 **File:** `src/hooks/useStock.ts`
 
-```typescript
+````typescript
 import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 import { fetchStockBySymbol } from '../api/stockApi';
 import { queryKeys } from '../lib/queryKeys';
@@ -168,10 +165,7 @@ interface UseStockOptions {
   /** Whether to enable the query */
   enabled?: boolean;
   /** Additional query options */
-  queryOptions?: Omit<
-    UseQueryOptions<Stock, Error>,
-    'queryKey' | 'queryFn' | 'enabled'
-  >;
+  queryOptions?: Omit<UseQueryOptions<Stock, Error>, 'queryKey' | 'queryFn' | 'enabled'>;
 }
 
 /**
@@ -192,7 +186,7 @@ export function useStock(symbol: string, options: UseStockOptions = {}) {
     ...queryOptions,
   });
 }
-```
+````
 
 ### Step 5: Create Prefetch Utilities
 
@@ -200,7 +194,7 @@ Implement utilities for prefetching data.
 
 **File:** `src/hooks/usePrefetchStocks.ts`
 
-```typescript
+````typescript
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { fetchStocks, fetchStockBySymbol } from '../api/stockApi';
@@ -243,7 +237,7 @@ export function usePrefetchStocks() {
 
   return { prefetchStocks, prefetchStock };
 }
-```
+````
 
 ### Step 6: Create Cache Utilities
 
@@ -251,7 +245,7 @@ Implement utilities for cache manipulation.
 
 **File:** `src/hooks/useStockCache.ts`
 
-```typescript
+````typescript
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { queryKeys } from '../lib/queryKeys';
@@ -303,19 +297,14 @@ export function useStockCache() {
       // Update in list cache
       queryClient.setQueryData<Stock[]>(queryKeys.stocks.all, (old) => {
         if (!old) return old;
-        return old.map((stock) =>
-          stock.symbol === symbol ? { ...stock, ...updates } : stock
-        );
+        return old.map((stock) => (stock.symbol === symbol ? { ...stock, ...updates } : stock));
       });
 
       // Update in detail cache
-      queryClient.setQueryData<Stock>(
-        queryKeys.stocks.detail(symbol),
-        (old) => {
-          if (!old) return old;
-          return { ...old, ...updates };
-        }
-      );
+      queryClient.setQueryData<Stock>(queryKeys.stocks.detail(symbol), (old) => {
+        if (!old) return old;
+        return { ...old, ...updates };
+      });
     },
     [queryClient]
   );
@@ -326,9 +315,7 @@ export function useStockCache() {
   const getStockFromCache = useCallback(
     (symbol: string): Stock | undefined => {
       // Try detail cache first
-      const detail = queryClient.getQueryData<Stock>(
-        queryKeys.stocks.detail(symbol)
-      );
+      const detail = queryClient.getQueryData<Stock>(queryKeys.stocks.detail(symbol));
       if (detail) return detail;
 
       // Fall back to list cache
@@ -345,7 +332,7 @@ export function useStockCache() {
     getStockFromCache,
   };
 }
-```
+````
 
 ### Step 7: Set Up Query Provider
 
@@ -489,13 +476,13 @@ src/
 
 ## Configuration Reference
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `staleTime` | 30s | Time before data is considered stale |
-| `gcTime` | 5min | Time before unused data is garbage collected |
-| `refetchInterval` | 60s | Auto-refetch interval for stock data |
-| `retry` | 3 | Number of retry attempts on failure |
-| `refetchOnWindowFocus` | true | Refetch when window regains focus |
+| Option                 | Default | Description                                  |
+| ---------------------- | ------- | -------------------------------------------- |
+| `staleTime`            | 30s     | Time before data is considered stale         |
+| `gcTime`               | 5min    | Time before unused data is garbage collected |
+| `refetchInterval`      | 60s     | Auto-refetch interval for stock data         |
+| `retry`                | 3       | Number of retry attempts on failure          |
+| `refetchOnWindowFocus` | true    | Refetch when window regains focus            |
 
 ## Testing Considerations
 

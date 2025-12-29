@@ -126,7 +126,7 @@ export async function fetchStocks(): Promise<Stock[]> {
   const response = await fetch(`${STOCK_API_BASE_URL}/stocks`, {
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${import.meta.env.VITE_STOCK_API_KEY}`,
+      Authorization: `Bearer ${import.meta.env.VITE_STOCK_API_KEY}`,
     },
   });
 

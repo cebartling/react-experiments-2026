@@ -97,7 +97,9 @@ export class StockApiError extends Error {
   }
 
   static fromResponse(response: Response, body?: unknown): StockApiError {
-    const errorBody = body as { code?: string; message?: string; details?: Record<string, unknown> } | undefined;
+    const errorBody = body as
+      | { code?: string; message?: string; details?: Record<string, unknown> }
+      | undefined;
     return new StockApiError(
       errorBody?.message || response.statusText || 'Unknown error',
       response.status,
@@ -137,17 +139,14 @@ import type { Stock, StockApiResponse } from '../types/stock';
 function createHeaders(): HeadersInit {
   return {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${API_CONFIG.apiKey}`,
+    Authorization: `Bearer ${API_CONFIG.apiKey}`,
   };
 }
 
 /**
  * Wrapper for fetch with timeout and error handling
  */
-async function fetchWithTimeout(
-  url: string,
-  options: RequestInit = {}
-): Promise<Response> {
+async function fetchWithTimeout(url: string, options: RequestInit = {}): Promise<Response> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
 
@@ -317,9 +316,7 @@ describe('fetchStocks', () => {
   });
 
   it('should fetch stocks successfully', async () => {
-    const mockStocks = [
-      { symbol: 'AAPL', companyName: 'Apple Inc.', price: 150.0 },
-    ];
+    const mockStocks = [{ symbol: 'AAPL', companyName: 'Apple Inc.', price: 150.0 }];
 
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
