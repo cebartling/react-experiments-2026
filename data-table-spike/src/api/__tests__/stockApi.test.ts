@@ -226,10 +226,10 @@ describe('stockApi', () => {
         json: () => Promise.resolve(mockStock),
       });
 
-      await fetchStockBySymbol('BRK.A');
+      await fetchStockBySymbol('TEST/B');
 
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/stocks/BRK.A'),
+        expect.stringContaining('/stocks/TEST%2FB'),
         expect.any(Object)
       );
     });
