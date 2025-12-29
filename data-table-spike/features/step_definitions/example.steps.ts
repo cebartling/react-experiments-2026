@@ -7,5 +7,5 @@ Given('I navigate to the application', async function (this: PlaywrightWorld) {
 });
 
 Then('I should see the application loaded', async function (this: PlaywrightWorld) {
-  await expect(this.page).toHaveTitle(/Vite \+ React/);
+  await expect(this.page).toHaveTitle(/data-table-spike/);
 });
