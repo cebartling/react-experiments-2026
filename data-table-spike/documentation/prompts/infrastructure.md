@@ -154,11 +154,17 @@ Configure Cucumber.js with Playwright as the test runner.
 
 Add the following dev dependencies:
 
-- `@cucumber/cucumber` - BDD testing framework (v12+)
+- `@cucumber/cucumber` - BDD testing framework (v12+ required for ESM support)
 - `playwright` - Browser automation library
 - `@playwright/test` - Playwright test assertions
 - `ts-node` - TypeScript execution
 - `tsx` - Fast TypeScript execution with ESM support
+
+After installing dependencies, install Playwright browsers:
+
+```bash
+npx playwright install
+```
 
 Create the directory structure for acceptance tests:
 
@@ -279,6 +285,16 @@ Add necessary scripts to `package.json` to run acceptance tests:
 ```
 
 Note: The `cucumber.js` configuration file specifies the import paths, so they don't need to be repeated in the CLI commands.
+
+To run acceptance tests, start the dev server first:
+
+```bash
+# Terminal 1: Start dev server
+npm run dev
+
+# Terminal 2: Run acceptance tests
+npm run test:acceptance
+```
 
 Update `.gitignore` to exclude reports directory:
 
