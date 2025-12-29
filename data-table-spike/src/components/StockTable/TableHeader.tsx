@@ -1,10 +1,23 @@
 import { flexRender, type HeaderGroup } from '@tanstack/react-table';
 import type { Stock } from '../../types/stock';
 
+/**
+ * Props for the TableHeader component.
+ */
 interface TableHeaderProps {
+  /** Array of TanStack Table header groups containing column headers */
   headerGroups: HeaderGroup<Stock>[];
 }
 
+/**
+ * Renders sortable table headers with keyboard accessibility.
+ *
+ * Features:
+ * - Click or keyboard (Enter/Space) to toggle sorting
+ * - Visual sort direction indicators (↑ ↓ ↕)
+ * - ARIA attributes for accessibility (aria-sort, role="button")
+ * - Prevents default space key scrolling behavior
+ */
 export function TableHeader({ headerGroups }: TableHeaderProps) {
   return (
     <thead className="stock-table-header">
