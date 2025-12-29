@@ -19,6 +19,10 @@ This is an experimental React data table spike project using React 19, TypeScrip
 - **Vite** using `rolldown-vite@7.2.5` (experimental Rolldown-based Vite)
 - **ESLint** with TypeScript and React Hooks plugins
 - **CSS** for styling (no CSS framework)
+- **TanStack Table** (`@tanstack/react-table`) - Headless table library for building data tables
+- **TanStack Query** (`@tanstack/react-query`) - Data fetching and caching
+- **TanStack Virtual** (`@tanstack/react-virtual`) - Virtualization for large lists/tables
+- **localforage** - Client-side storage abstraction (IndexedDB/WebSQL/localStorage)
 
 ## Architecture
 
