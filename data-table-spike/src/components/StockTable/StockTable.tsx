@@ -15,6 +15,23 @@ import { LoadingState } from './LoadingState';
 import { ErrorState } from './ErrorState';
 import './StockTable.css';
 
+/**
+ * Main stock data table component with sorting, filtering, and responsive design.
+ *
+ * Features:
+ * - Fetches stock data via useStockData hook (TanStack Query)
+ * - Sortable columns by clicking headers
+ * - Global search filter with debounced input
+ * - Loading skeleton state during data fetch
+ * - Error state with retry capability
+ *
+ * @example
+ * ```tsx
+ * <QueryClientProvider client={queryClient}>
+ *   <StockTable />
+ * </QueryClientProvider>
+ * ```
+ */
 export function StockTable() {
   const { data: stocks, isLoading, error, refetch } = useStockData();
   const [sorting, setSorting] = useState<SortingState>([]);
