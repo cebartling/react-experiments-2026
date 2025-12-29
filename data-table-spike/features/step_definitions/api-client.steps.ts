@@ -75,7 +75,7 @@ Given('the API returns a 401 unauthorized error', async function (this: ApiClien
   };
 });
 
-Given('the API returns a 404 not found error for {string}', async function (this: ApiClientWorld) {
+Given('the API returns a 404 not found error', async function (this: ApiClientWorld) {
   this.mockResponse = {
     status: 404,
     body: { code: 'NOT_FOUND', message: 'Stock not found' },

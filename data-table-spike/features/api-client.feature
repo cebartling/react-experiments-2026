@@ -28,7 +28,7 @@ Feature: Stock API Client
 
   @api @error-handling
   Scenario: Handle not found error for single stock
-    Given the API returns a 404 not found error for "INVALID"
+    Given the API returns a 404 not found error
     When I attempt to fetch the stock with symbol "INVALID"
     Then I should receive a not found error
 
