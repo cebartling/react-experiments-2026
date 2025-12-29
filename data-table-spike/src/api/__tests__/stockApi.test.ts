@@ -267,6 +267,22 @@ describe('stockApi', () => {
       }
     });
 
+    it('should throw StockApiError on timeout', async () => {
+      const abortError = new DOMException('The operation was aborted.', 'AbortError');
+      globalThis.fetch = vi.fn().mockRejectedValue(abortError);
+
+      await expect(fetchStockBySymbol('AAPL')).rejects.toThrow(StockApiError);
+
+      try {
+        await fetchStockBySymbol('AAPL');
+      } catch (error) {
+        const apiError = error as StockApiError;
+        expect(apiError.statusCode).toBe(0);
+        expect(apiError.code).toBe('TIMEOUT');
+        expect(apiError.message).toBe('Request timeout');
+      }
+    });
+
     it('should log error details on failure', async () => {
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: false,
