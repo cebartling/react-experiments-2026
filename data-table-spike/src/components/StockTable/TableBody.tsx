@@ -1,16 +1,25 @@
 import { flexRender, type Row } from '@tanstack/react-table';
 import type { Stock } from '../../types/stock';
 
+/**
+ * Props for the TableBody component.
+ */
 interface TableBodyProps {
+  /** Array of TanStack Table row objects to render */
   rows: Row<Stock>[];
+  /** Number of columns for the empty state colSpan. Defaults to 7. */
+  columnCount?: number;
 }
 
-export function TableBody({ rows }: TableBodyProps) {
+/**
+ * Renders the table body with stock data rows or an empty state message.
+ */
+export function TableBody({ rows, columnCount = 7 }: TableBodyProps) {
   if (rows.length === 0) {
     return (
       <tbody className="stock-table-body">
         <tr>
-          <td colSpan={100} className="no-data">
+          <td colSpan={columnCount} className="no-data">
             No stocks found
           </td>
         </tr>

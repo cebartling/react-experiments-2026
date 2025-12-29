@@ -81,7 +81,7 @@ export function StockTable() {
       <div className="stock-table-wrapper">
         <table className="stock-table">
           <TableHeader headerGroups={table.getHeaderGroups()} />
-          <TableBody rows={table.getRowModel().rows} />
+          <TableBody rows={table.getRowModel().rows} columnCount={stockColumns.length} />
         </table>
       </div>
     </div>
