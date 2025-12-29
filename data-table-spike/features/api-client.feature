@@ -16,7 +16,7 @@ Feature: Stock API Client
   @api @stocks
   Scenario: Successfully fetch a single stock by symbol
     Given the API returns stock data for "AAPL"
-    When I fetch the stock with symbol "AAPL"
+    When I call the API to fetch stock "AAPL"
     Then I should receive the stock data for "AAPL"
 
   @api @error-handling
