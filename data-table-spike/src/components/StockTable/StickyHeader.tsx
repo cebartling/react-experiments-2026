@@ -41,7 +41,7 @@ export function StickyHeader({ headerGroups }: StickyHeaderProps) {
                   }
                 }}
                 tabIndex={canSort ? 0 : undefined}
-                role={canSort ? 'columnheader button' : 'columnheader'}
+                role="columnheader"
                 aria-sort={
                   sortDirection === 'asc'
                     ? 'ascending'
