@@ -39,3 +39,25 @@ Uses project references with separate configs:
 
 - `tsconfig.app.json` - Application code (strict mode enabled)
 - `tsconfig.node.json` - Node tooling files
+
+## Code Documentation
+
+Use JSDoc comments for all public interfaces, types, and exported functions:
+
+- **Interfaces/Types** - Document the interface purpose and each property
+- **React Components** - Document purpose, features, and include usage examples
+- **Custom Hooks** - Document return values, features, and usage examples
+- **Exported Constants** - Document purpose and usage
+
+Example:
+```typescript
+/**
+ * Props for the SearchFilter component.
+ */
+interface SearchFilterProps {
+  /** The current filter value (controlled component) */
+  value: string;
+  /** Callback invoked with the new filter value after debounce delay */
+  onChange: (value: string) => void;
+}
+```
