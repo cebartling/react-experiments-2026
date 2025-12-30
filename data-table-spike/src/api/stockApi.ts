@@ -1,6 +1,11 @@
 import { API_CONFIG } from '../config/api';
 import { StockApiError } from './errors';
-import type { Stock, StockApiResponse } from '../types/stock';
+import type {
+  Stock,
+  StockApiResponse,
+  PaginatedStockApiResponse,
+  PaginationParams,
+} from '../types/stock';
 
 let hasWarnedAboutMissingApiKey = false;
 
@@ -126,5 +131,52 @@ export async function fetchStockBySymbol(symbol: string): Promise<Stock> {
     return await handleResponse<Stock>(response);
   } catch (error) {
     handleApiError(error, { operation: `Error fetching stock ${symbol}` });
+  }
+}
+
+/**
+ * Fetches paginated stocks from the API with optional filtering and sorting.
+ *
+ * @param params - Pagination, filtering, and sorting parameters
+ * @returns Paginated response with stock data and metadata
+ *
+ * @example
+ * ```ts
+ * const response = await fetchStocksPaginated({ page: 0, pageSize: 50 });
+ * console.log(response.data); // Stock[]
+ * console.log(response.meta.hasNextPage); // boolean
+ * ```
+ */
+export async function fetchStocksPaginated(
+  params: PaginationParams = {}
+): Promise<PaginatedStockApiResponse> {
+  const { page = 0, pageSize = 50, search, sortBy, sortOrder } = params;
+
+  const url = new URL(`${API_CONFIG.baseUrl}/stocks/paginated`);
+  url.searchParams.set('page', String(page));
+  url.searchParams.set('pageSize', String(pageSize));
+
+  if (search) {
+    url.searchParams.set('search', search);
+  }
+  if (sortBy) {
+    url.searchParams.set('sortBy', sortBy);
+  }
+  if (sortOrder) {
+    url.searchParams.set('sortOrder', sortOrder);
+  }
+
+  try {
+    const response = await fetchWithTimeout(url.toString(), {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+
+    return await handleResponse<PaginatedStockApiResponse>(response);
+  } catch (error) {
+    handleApiError(error, {
+      operation: 'Error fetching paginated stocks',
+      details: { page, pageSize, search },
+    });
   }
 }

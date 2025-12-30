@@ -12,3 +12,6 @@ export { VirtualizedStockTable } from './VirtualizedStockTable';
 export { VirtualizedTableBody } from './VirtualizedTableBody';
 export { StickyHeader } from './StickyHeader';
 export { PerformanceOverlay } from './PerformanceOverlay';
+
+// Infinite scroll table component
+export { InfiniteStockTable } from './InfiniteStockTable';

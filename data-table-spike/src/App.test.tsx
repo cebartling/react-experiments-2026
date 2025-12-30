@@ -49,11 +49,14 @@ describe('App', () => {
       expect(screen.getByRole('heading', { name: /data table spike/i })).toBeInTheDocument();
     });
 
-    it('renders navigation link to stocks page', () => {
+    it('renders navigation links to stock pages', () => {
       renderWithProviders('/');
 
-      const stocksLink = screen.getByRole('link', { name: /stock table/i });
-      expect(stocksLink).toHaveAttribute('href', '/stocks-read-only');
+      const readOnlyLink = screen.getByRole('link', { name: /stock table \(read-only\)/i });
+      expect(readOnlyLink).toHaveAttribute('href', '/stocks-read-only');
+
+      const infiniteLink = screen.getByRole('link', { name: /stock table \(infinite scroll\)/i });
+      expect(infiniteLink).toHaveAttribute('href', '/stocks-infinite');
     });
 
     it('has no accessibility violations on home page', async () => {
@@ -66,12 +69,12 @@ describe('App', () => {
   });
 
   describe('Navigation', () => {
-    it('navigates to stocks page when link is clicked', async () => {
+    it('navigates to read-only stocks page when card is clicked', async () => {
       const user = userEvent.setup();
       renderWithProviders('/');
 
-      const stocksLink = screen.getByRole('link', { name: /stock table/i });
-      await user.click(stocksLink);
+      const stocksCard = screen.getByRole('link', { name: /stock table \(read-only\)/i });
+      await user.click(stocksCard);
 
       expect(screen.getByText(/0 stocks/i)).toBeInTheDocument();
     });
