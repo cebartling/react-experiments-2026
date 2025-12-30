@@ -125,59 +125,40 @@ src/
 
 ### Component Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    VirtualizedStockTable                    │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────────────────┐  ┌──────────────────────────┐  │
-│  │      SearchFilter       │  │      Row Count           │  │
-│  └─────────────────────────┘  └──────────────────────────┘  │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────────────────────────────────────────────────┐│
-│  │                    StickyHeader                         ││
-│  │   Symbol │ Company │ Price │ Change │ % │ Volume │ Cap  ││
-│  └─────────────────────────────────────────────────────────┘│
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────────────────────────────────────────────────┐│
-│  │               VirtualizedTableBody                      ││
-│  │  (renders only visible rows + overscan buffer)          ││
-│  │                                                         ││
-│  │   AAPL  │ Apple Inc. │ $150.00 │ +2.50 │ +1.7% │ ...   ││
-│  │   GOOGL │ Alphabet   │ $140.00 │ -1.20 │ -0.8% │ ...   ││
-│  │   ...                                                   ││
-│  └─────────────────────────────────────────────────────────┘│
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+block-beta
+    columns 1
+    block:table["VirtualizedStockTable"]
+        columns 2
+        SearchFilter["SearchFilter"]
+        RowCount["Row Count"]
+    end
+    block:header["StickyHeader"]
+        columns 7
+        Symbol Company Price Change Percent["Change %"] Volume Cap["Market Cap"]
+    end
+    block:body["VirtualizedTableBody (renders only visible rows + overscan)"]
+        columns 1
+        row1["AAPL | Apple Inc. | $150.00 | +2.50 | +1.7% | ..."]
+        row2["GOOGL | Alphabet | $140.00 | -1.20 | -0.8% | ..."]
+    end
 ```
 
 ### Data Flow
 
-```
-┌──────────────┐     ┌─────────────────┐     ┌────────────┐
-│  Component   │────▶│  useStockData   │────▶│  TanStack  │
-│              │     │     Hook        │     │   Query    │
-└──────────────┘     └─────────────────┘     └─────┬──────┘
-                                                   │
-                                                   ▼
-                                            ┌────────────┐
-                                            │   Cache    │
-                                            │  (5 min)   │
-                                            └─────┬──────┘
-                                                  │
-                           Cache Miss ────────────┼─────────── Cache Hit
-                                │                              │
-                                ▼                              │
-                         ┌────────────┐                        │
-                         │  Stock API │                        │
-                         │   Client   │                        │
-                         └─────┬──────┘                        │
-                               │                               │
-                               ▼                               │
-                         ┌────────────┐                        │
-                         │  External  │                        │
-                         │    API     │                        │
-                         └────────────┘                        │
-                                                               │
-                         Return Data ◀─────────────────────────┘
+```mermaid
+flowchart TD
+    Component[Component] --> Hook[useStockData Hook]
+    Hook --> Query[TanStack Query]
+    Query --> Cache[(Cache<br/>5 min TTL)]
+
+    Cache -->|Cache Hit| Return[Return Data]
+    Cache -->|Cache Miss| API[Stock API Client]
+    API --> External[External API]
+    External --> API
+    API --> Cache
+    Cache --> Return
+    Return --> Component
 ```
 
 ## Data Model
