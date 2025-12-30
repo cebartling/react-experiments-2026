@@ -9,6 +9,7 @@ const mockMetrics: VirtualizationMetrics = {
   totalRows: 1000,
   renderRatio: 2,
   avgRenderTime: 5.5,
+  onRenderCallback: () => {},
 };
 
 describe('PerformanceOverlay', () => {
