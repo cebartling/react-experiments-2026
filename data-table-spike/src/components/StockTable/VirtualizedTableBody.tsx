@@ -53,7 +53,11 @@ export function VirtualizedTableBody({
 
   if (rows.length === 0) {
     return (
-      <div className="virtual-table-body" ref={parentRef}>
+      <div
+        className="virtual-table-body"
+        ref={parentRef}
+        style={{ height: `${tableHeight}px`, overflow: 'auto' }}
+      >
         <div className="no-data">No stocks found</div>
       </div>
     );

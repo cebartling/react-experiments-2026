@@ -79,6 +79,22 @@ describe('VirtualizedTableBody', () => {
     expect(screen.getByText('No stocks found')).toBeInTheDocument();
   });
 
+  it('should apply tableHeight style to empty state container', () => {
+    function TestWithCustomHeight() {
+      const table = useReactTable({
+        data: [],
+        columns: stockColumns,
+        getCoreRowModel: getCoreRowModel(),
+      });
+      return <VirtualizedTableBody rows={table.getRowModel().rows} tableHeight={500} />;
+    }
+
+    render(<TestWithCustomHeight />);
+
+    const container = document.querySelector('.virtual-table-body');
+    expect(container).toHaveStyle({ height: '500px' });
+  });
+
   it('should have virtual-row class on rows', () => {
     render(<TestVirtualizedTable data={mockStocks} />);
 
