@@ -8,8 +8,12 @@
 
 # Node modules and dependency files
 /node_modules/
-/package-lock.json
+node_modules/
+package-lock.json
 /yarn.lock
+
+# MSW (Mock Service Worker)
+**/public/mockServiceWorker.js
 
 # Environment files
 /.env

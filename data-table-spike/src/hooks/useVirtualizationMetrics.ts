@@ -72,12 +72,12 @@ export function useVirtualizationMetrics(
       const delta = now - lastFrameTimeRef.current;
       lastFrameTimeRef.current = now;
 
-      frameTimesRef.current.push(delta);
-
-      // Keep last 60 frame times
-      if (frameTimesRef.current.length > 60) {
+      // Keep last 60 frame times - limit before adding
+      if (frameTimesRef.current.length >= 60) {
         frameTimesRef.current.shift();
       }
+
+      frameTimesRef.current.push(delta);
 
       // Calculate FPS every 30 frames
       if (frameTimesRef.current.length % 30 === 0) {

@@ -603,11 +603,15 @@ Then(
     const companyNames = await this.page.locator('.company-name').allTextContents();
     const symbols = await this.page.locator('.stock-symbol').allTextContents();
 
-    const allMatching =
-      companyNames.every((name) => name.toLowerCase().includes(text.toLowerCase())) ||
-      symbols.every((sym) => sym.toLowerCase().includes(text.toLowerCase()));
+    const lowerText = text.toLowerCase();
+    const rowCount = Math.max(companyNames.length, symbols.length);
+    const allRowsMatch = Array.from({ length: rowCount }).every((_, index) => {
+      const name = (companyNames[index] || '').toLowerCase();
+      const symbol = (symbols[index] || '').toLowerCase();
+      return name.includes(lowerText) || symbol.includes(lowerText);
+    });
 
-    expect(allMatching).toBe(true);
+    expect(allRowsMatch).toBe(true);
   }
 );
 
