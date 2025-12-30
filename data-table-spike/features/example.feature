@@ -1,3 +1,4 @@
+@e2e
 Feature: Example acceptance test
   As a user
   I want to verify the acceptance testing setup works

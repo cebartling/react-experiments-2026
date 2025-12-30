@@ -7,8 +7,8 @@ describe('queryKeys', () => {
       expect(queryKeys.stocks.all).toEqual(['stocks']);
     });
 
-    it('should have correct "lists" key', () => {
-      expect(queryKeys.stocks.lists()).toEqual(['stocks', 'list']);
+    it('should have correct "listBase" key', () => {
+      expect(queryKeys.stocks.listBase()).toEqual(['stocks', 'list']);
     });
 
     it('should have correct "list" key without filters', () => {
@@ -20,8 +20,8 @@ describe('queryKeys', () => {
       expect(queryKeys.stocks.list(filters)).toEqual(['stocks', 'list', filters]);
     });
 
-    it('should have correct "details" key', () => {
-      expect(queryKeys.stocks.details()).toEqual(['stocks', 'detail']);
+    it('should have correct "detailBase" key', () => {
+      expect(queryKeys.stocks.detailBase()).toEqual(['stocks', 'detail']);
     });
 
     it('should have correct "detail" key for symbol', () => {
@@ -42,11 +42,11 @@ describe('queryKeys', () => {
   describe('key hierarchy', () => {
     it('should have "all" as prefix for all stock keys', () => {
       const allKey = queryKeys.stocks.all;
-      const listsKey = queryKeys.stocks.lists();
-      const detailsKey = queryKeys.stocks.details();
+      const listBaseKey = queryKeys.stocks.listBase();
+      const detailBaseKey = queryKeys.stocks.detailBase();
 
-      expect(listsKey.slice(0, allKey.length)).toEqual(allKey);
-      expect(detailsKey.slice(0, allKey.length)).toEqual(allKey);
+      expect(listBaseKey.slice(0, allKey.length)).toEqual(allKey);
+      expect(detailBaseKey.slice(0, allKey.length)).toEqual(allKey);
     });
   });
 });

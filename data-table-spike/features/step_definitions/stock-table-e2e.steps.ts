@@ -110,10 +110,13 @@ Then('I should see column headers:', async function (this: PlaywrightWorld, data
   }
 });
 
-Then('I should see {int} stock rows', async function (this: PlaywrightWorld, expectedCount: number) {
-  const rows = this.page.locator('tbody tr');
-  await expect(rows).toHaveCount(expectedCount);
-});
+Then(
+  'I should see {int} stock rows',
+  async function (this: PlaywrightWorld, expectedCount: number) {
+    const rows = this.page.locator('tbody tr');
+    await expect(rows).toHaveCount(expectedCount);
+  }
+);
 
 Then('I should see {string} in the table', async function (this: PlaywrightWorld, text: string) {
   const cell = this.page.locator(`td:has-text("${text}")`);
@@ -152,10 +155,13 @@ Then(
   }
 );
 
-Then('stocks with negative changes should have red styling', async function (this: PlaywrightWorld) {
-  const negativeChange = this.page.locator('.change.negative').first();
-  await expect(negativeChange).toBeVisible();
-});
+Then(
+  'stocks with negative changes should have red styling',
+  async function (this: PlaywrightWorld) {
+    const negativeChange = this.page.locator('.change.negative').first();
+    await expect(negativeChange).toBeVisible();
+  }
+);
 
 Then(
   'the stocks should be sorted by symbol in ascending order',
@@ -195,35 +201,29 @@ Then(
   }
 );
 
-Then(
-  'the Symbol column should indicate ascending sort',
-  async function (this: PlaywrightWorld) {
-    const symbolHeader = this.page.locator('th').filter({ hasText: /^Symbol/ });
-    // Check for aria-sort or sort indicator
-    const ariaSort = await symbolHeader.getAttribute('aria-sort');
-    if (ariaSort) {
-      expect(ariaSort).toBe('ascending');
-    } else {
-      // Check for visual indicator (↑)
-      const headerText = await symbolHeader.textContent();
-      expect(headerText).toContain('↑');
-    }
+Then('the Symbol column should indicate ascending sort', async function (this: PlaywrightWorld) {
+  const symbolHeader = this.page.locator('th').filter({ hasText: /^Symbol/ });
+  // Check for aria-sort or sort indicator
+  const ariaSort = await symbolHeader.getAttribute('aria-sort');
+  if (ariaSort) {
+    expect(ariaSort).toBe('ascending');
+  } else {
+    // Check for visual indicator (↑)
+    const headerText = await symbolHeader.textContent();
+    expect(headerText).toContain('↑');
   }
-);
+});
 
-Then(
-  'the Symbol column should indicate descending sort',
-  async function (this: PlaywrightWorld) {
-    const symbolHeader = this.page.locator('th').filter({ hasText: /^Symbol/ });
-    const ariaSort = await symbolHeader.getAttribute('aria-sort');
-    if (ariaSort) {
-      expect(ariaSort).toBe('descending');
-    } else {
-      const headerText = await symbolHeader.textContent();
-      expect(headerText).toContain('↓');
-    }
+Then('the Symbol column should indicate descending sort', async function (this: PlaywrightWorld) {
+  const symbolHeader = this.page.locator('th').filter({ hasText: /^Symbol/ });
+  const ariaSort = await symbolHeader.getAttribute('aria-sort');
+  if (ariaSort) {
+    expect(ariaSort).toBe('descending');
+  } else {
+    const headerText = await symbolHeader.textContent();
+    expect(headerText).toContain('↓');
   }
-);
+});
 
 Then('I should see 1 stock row', async function (this: PlaywrightWorld) {
   const rows = this.page.locator('tbody tr');

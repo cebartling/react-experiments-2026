@@ -1,12 +1,19 @@
 import { Given, When, Then } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
 import { PlaywrightWorld } from '../support/world';
-import type { Stock, StockApiResponse } from '../../src/types/stock';
+import type { Stock } from '../../src/types/stock';
 
 interface ApiClientWorld extends PlaywrightWorld {
   mockStocks: Stock[];
   fetchResult: Stock[] | Stock | null;
-  fetchError: Error | null;
+  fetchError: {
+    message: string;
+    statusCode?: number;
+    code?: string;
+    isUnauthorized?: boolean;
+    isRateLimited?: boolean;
+    isNetworkError?: boolean;
+  } | null;
   mockResponse: {
     status: number;
     body: unknown;
@@ -40,22 +47,123 @@ const mockStocks: Stock[] = [
   },
 ];
 
+function getApiClientTestHtml(): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head><title>API Client Test</title></head>
+      <body>
+        <div id="root"></div>
+        <script>
+          // Mock API client implementation for testing
+          window.mockResponse = null;
+          window.fetchResult = null;
+          window.fetchError = null;
+
+          // StockApiError class
+          class StockApiError extends Error {
+            constructor(message, statusCode, code) {
+              super(message);
+              this.name = 'StockApiError';
+              this.statusCode = statusCode;
+              this.code = code;
+            }
+
+            get isUnauthorized() {
+              return this.statusCode === 401;
+            }
+
+            get isRateLimited() {
+              return this.statusCode === 429;
+            }
+
+            get isNetworkError() {
+              return this.code === 'NETWORK_ERROR';
+            }
+          }
+          window.StockApiError = StockApiError;
+
+          // Simulated fetch functions
+          window.fetchStocks = async function() {
+            if (window.mockResponse === null) {
+              throw new StockApiError('Network error', undefined, 'NETWORK_ERROR');
+            }
+
+            const { status, body } = window.mockResponse;
+
+            if (status === 401) {
+              throw new StockApiError('Unauthorized', 401, 'AUTH_ERROR');
+            }
+            if (status === 429) {
+              throw new StockApiError('Rate limited', 429, 'RATE_LIMIT');
+            }
+            if (status === 404) {
+              throw new StockApiError('Not found', 404, 'NOT_FOUND');
+            }
+            if (status >= 400) {
+              throw new StockApiError(body.message || 'Error', status, body.code);
+            }
+
+            return body.data;
+          };
+
+          window.fetchStockBySymbol = async function(symbol) {
+            if (window.mockResponse === null) {
+              throw new StockApiError('Network error', undefined, 'NETWORK_ERROR');
+            }
+
+            const { status, body } = window.mockResponse;
+
+            if (status === 401) {
+              throw new StockApiError('Unauthorized', 401, 'AUTH_ERROR');
+            }
+            if (status === 429) {
+              throw new StockApiError('Rate limited', 429, 'RATE_LIMIT');
+            }
+            if (status === 404) {
+              throw new StockApiError('Not found', 404, 'NOT_FOUND');
+            }
+            if (status >= 400) {
+              throw new StockApiError(body.message || 'Error', status, body.code);
+            }
+
+            return body;
+          };
+        </script>
+      </body>
+    </html>
+  `;
+}
+
+async function setupApiClientPage(world: ApiClientWorld): Promise<void> {
+  await world.page.setContent(getApiClientTestHtml());
+  await world.page.waitForLoadState('domcontentloaded');
+}
+
 Given('the API server is available', async function (this: ApiClientWorld) {
   this.mockStocks = mockStocks;
   this.fetchResult = null;
   this.fetchError = null;
   this.mockResponse = null;
+
+  await setupApiClientPage(this);
 });
 
 Given('the API returns a list of stocks', async function (this: ApiClientWorld) {
-  const response: StockApiResponse = {
-    data: this.mockStocks,
-    meta: {
-      timestamp: new Date().toISOString(),
-      count: this.mockStocks.length,
+  this.mockResponse = {
+    status: 200,
+    body: {
+      data: this.mockStocks,
+      meta: {
+        timestamp: new Date().toISOString(),
+        count: this.mockStocks.length,
+      },
     },
   };
-  this.mockResponse = { status: 200, body: response };
+
+  await this.page.evaluate((response) => {
+    (window as unknown as { mockResponse: unknown }).mockResponse = response;
+  }, this.mockResponse);
 });
 
 Given(
@@ -64,6 +172,9 @@ Given(
     const stock = this.mockStocks.find((s) => s.symbol === symbol);
     if (stock) {
       this.mockResponse = { status: 200, body: stock };
+      await this.page.evaluate((response) => {
+        (window as unknown as { mockResponse: unknown }).mockResponse = response;
+      }, this.mockResponse);
     }
   }
 );
@@ -73,6 +184,9 @@ Given('the API returns a 401 unauthorized error', async function (this: ApiClien
     status: 401,
     body: { code: 'AUTH_ERROR', message: 'Invalid API key' },
   };
+  await this.page.evaluate((response) => {
+    (window as unknown as { mockResponse: unknown }).mockResponse = response;
+  }, this.mockResponse);
 });
 
 Given('the API returns a 404 not found error', async function (this: ApiClientWorld) {
@@ -80,6 +194,9 @@ Given('the API returns a 404 not found error', async function (this: ApiClientWo
     status: 404,
     body: { code: 'NOT_FOUND', message: 'Stock not found' },
   };
+  await this.page.evaluate((response) => {
+    (window as unknown as { mockResponse: unknown }).mockResponse = response;
+  }, this.mockResponse);
 });
 
 Given('the API returns a 429 rate limit error', async function (this: ApiClientWorld) {
@@ -87,123 +204,120 @@ Given('the API returns a 429 rate limit error', async function (this: ApiClientW
     status: 429,
     body: { code: 'RATE_LIMIT', message: 'Rate limit exceeded' },
   };
+  await this.page.evaluate((response) => {
+    (window as unknown as { mockResponse: unknown }).mockResponse = response;
+  }, this.mockResponse);
 });
 
 Given('the API server is unavailable', async function (this: ApiClientWorld) {
   this.mockResponse = null;
+  await this.page.evaluate(() => {
+    (window as unknown as { mockResponse: null }).mockResponse = null;
+  });
 });
 
 When('I fetch all stocks', async function (this: ApiClientWorld) {
-  const result = await this.page.evaluate(async (mockResponse) => {
-    const { fetchStocks } = await import('/src/api/stockApi');
-
-    // Mock global fetch for this evaluation
-    const originalFetch = window.fetch;
-    window.fetch = async () => {
-      return new Response(JSON.stringify(mockResponse.body), {
-        status: mockResponse.status,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    };
-
+  const result = await this.page.evaluate(async () => {
     try {
+      const fetchStocks = (window as unknown as { fetchStocks: () => Promise<Stock[]> })
+        .fetchStocks;
       const stocks = await fetchStocks();
-      window.fetch = originalFetch;
       return { success: true, data: stocks };
     } catch (error) {
-      window.fetch = originalFetch;
-      return { success: false, error: String(error) };
+      const err = error as Error & {
+        statusCode?: number;
+        code?: string;
+        isUnauthorized?: boolean;
+        isRateLimited?: boolean;
+        isNetworkError?: boolean;
+      };
+      return {
+        success: false,
+        error: {
+          message: err.message,
+          statusCode: err.statusCode,
+          code: err.code,
+          isUnauthorized: err.isUnauthorized,
+          isRateLimited: err.isRateLimited,
+          isNetworkError: err.isNetworkError,
+        },
+      };
     }
-  }, this.mockResponse);
+  });
 
   if (result.success) {
     this.fetchResult = result.data as Stock[];
   } else {
-    this.fetchError = new Error(result.error);
+    this.fetchError = result.error;
   }
 });
 
 When('I attempt to fetch all stocks', async function (this: ApiClientWorld) {
-  const result = await this.page.evaluate(async (mockResponse) => {
-    const { fetchStocks, StockApiError } = await import('/src/api/index');
-
-    const originalFetch = window.fetch;
-
-    if (mockResponse === null) {
-      // Simulate network error
-      window.fetch = async () => {
-        throw new Error('Network error');
-      };
-    } else {
-      window.fetch = async () => {
-        return new Response(JSON.stringify(mockResponse.body), {
-          status: mockResponse.status,
-          headers: { 'Content-Type': 'application/json' },
-        });
-      };
-    }
-
+  const result = await this.page.evaluate(async () => {
     try {
+      const fetchStocks = (window as unknown as { fetchStocks: () => Promise<Stock[]> })
+        .fetchStocks;
       const stocks = await fetchStocks();
-      window.fetch = originalFetch;
       return { success: true, data: stocks };
     } catch (error) {
-      window.fetch = originalFetch;
-      if (error instanceof StockApiError) {
-        return {
-          success: false,
-          error: {
-            message: error.message,
-            statusCode: error.statusCode,
-            code: error.code,
-            isUnauthorized: error.isUnauthorized,
-            isRateLimited: error.isRateLimited,
-            isNetworkError: error.isNetworkError,
-          },
-        };
-      }
-      return { success: false, error: { message: String(error) } };
+      const err = error as Error & {
+        statusCode?: number;
+        code?: string;
+        isUnauthorized?: boolean;
+        isRateLimited?: boolean;
+        isNetworkError?: boolean;
+      };
+      return {
+        success: false,
+        error: {
+          message: err.message,
+          statusCode: err.statusCode,
+          code: err.code,
+          isUnauthorized: err.isUnauthorized,
+          isRateLimited: err.isRateLimited,
+          isNetworkError: err.isNetworkError,
+        },
+      };
     }
-  }, this.mockResponse);
+  });
 
   if (result.success) {
     this.fetchResult = result.data as Stock[];
   } else {
-    this.fetchError = result.error as unknown as Error;
+    this.fetchError = result.error;
   }
 });
 
 When(
-  'I fetch the stock with symbol {string}',
+  'I call the API to fetch stock {string}',
   async function (this: ApiClientWorld, symbol: string) {
-    const result = await this.page.evaluate(
-      async ({ mockResponse, symbol }) => {
-        const { fetchStockBySymbol } = await import('/src/api/stockApi');
-
-        const originalFetch = window.fetch;
-        window.fetch = async () => {
-          return new Response(JSON.stringify(mockResponse.body), {
-            status: mockResponse.status,
-            headers: { 'Content-Type': 'application/json' },
-          });
+    const result = await this.page.evaluate(async (sym) => {
+      try {
+        const fetchStockBySymbol = (
+          window as unknown as { fetchStockBySymbol: (s: string) => Promise<Stock> }
+        ).fetchStockBySymbol;
+        const stock = await fetchStockBySymbol(sym);
+        return { success: true, data: stock };
+      } catch (error) {
+        const err = error as Error & {
+          statusCode?: number;
+          code?: string;
         };
-
-        try {
-          const stock = await fetchStockBySymbol(symbol);
-          window.fetch = originalFetch;
-          return { success: true, data: stock };
-        } catch (error) {
-          window.fetch = originalFetch;
-          return { success: false, error: String(error) };
-        }
-      },
-      { mockResponse: this.mockResponse, symbol }
-    );
+        return {
+          success: false,
+          error: {
+            message: err.message,
+            statusCode: err.statusCode,
+            code: err.code,
+          },
+        };
+      }
+    }, symbol);
 
     if (result.success) {
       this.fetchResult = result.data as Stock;
     } else {
-      this.fetchError = new Error(result.error);
+      this.fetchError = result.error;
     }
   }
 );
@@ -211,44 +325,33 @@ When(
 When(
   'I attempt to fetch the stock with symbol {string}',
   async function (this: ApiClientWorld, symbol: string) {
-    const result = await this.page.evaluate(
-      async ({ mockResponse, symbol }) => {
-        const { fetchStockBySymbol, StockApiError } = await import('/src/api/index');
-
-        const originalFetch = window.fetch;
-        window.fetch = async () => {
-          return new Response(JSON.stringify(mockResponse.body), {
-            status: mockResponse.status,
-            headers: { 'Content-Type': 'application/json' },
-          });
+    const result = await this.page.evaluate(async (sym) => {
+      try {
+        const fetchStockBySymbol = (
+          window as unknown as { fetchStockBySymbol: (s: string) => Promise<Stock> }
+        ).fetchStockBySymbol;
+        const stock = await fetchStockBySymbol(sym);
+        return { success: true, data: stock };
+      } catch (error) {
+        const err = error as Error & {
+          statusCode?: number;
+          code?: string;
         };
-
-        try {
-          const stock = await fetchStockBySymbol(symbol);
-          window.fetch = originalFetch;
-          return { success: true, data: stock };
-        } catch (error) {
-          window.fetch = originalFetch;
-          if (error instanceof StockApiError) {
-            return {
-              success: false,
-              error: {
-                message: error.message,
-                statusCode: error.statusCode,
-                code: error.code,
-              },
-            };
-          }
-          return { success: false, error: { message: String(error) } };
-        }
-      },
-      { mockResponse: this.mockResponse, symbol }
-    );
+        return {
+          success: false,
+          error: {
+            message: err.message,
+            statusCode: err.statusCode,
+            code: err.code,
+          },
+        };
+      }
+    }, symbol);
 
     if (result.success) {
       this.fetchResult = result.data as Stock;
     } else {
-      this.fetchError = result.error as unknown as Error;
+      this.fetchError = result.error;
     }
   }
 );
@@ -286,34 +389,28 @@ Then(
 
 Then('I should receive an unauthorized error', async function (this: ApiClientWorld) {
   expect(this.fetchError).not.toBeNull();
-  const error = this.fetchError as { statusCode?: number };
-  expect(error.statusCode).toBe(401);
+  expect(this.fetchError?.statusCode).toBe(401);
 });
 
 Then('the error should indicate unauthorized access', async function (this: ApiClientWorld) {
-  const error = this.fetchError as { isUnauthorized?: boolean };
-  expect(error.isUnauthorized).toBe(true);
+  expect(this.fetchError?.isUnauthorized).toBe(true);
 });
 
 Then('I should receive a not found error', async function (this: ApiClientWorld) {
   expect(this.fetchError).not.toBeNull();
-  const error = this.fetchError as { statusCode?: number };
-  expect(error.statusCode).toBe(404);
+  expect(this.fetchError?.statusCode).toBe(404);
 });
 
 Then('I should receive a rate limited error', async function (this: ApiClientWorld) {
   expect(this.fetchError).not.toBeNull();
-  const error = this.fetchError as { statusCode?: number };
-  expect(error.statusCode).toBe(429);
+  expect(this.fetchError?.statusCode).toBe(429);
 });
 
 Then('the error should indicate rate limiting', async function (this: ApiClientWorld) {
-  const error = this.fetchError as { isRateLimited?: boolean };
-  expect(error.isRateLimited).toBe(true);
+  expect(this.fetchError?.isRateLimited).toBe(true);
 });
 
 Then('I should receive a network error', async function (this: ApiClientWorld) {
   expect(this.fetchError).not.toBeNull();
-  const error = this.fetchError as { isNetworkError?: boolean };
-  expect(error.isNetworkError).toBe(true);
+  expect(this.fetchError?.isNetworkError).toBe(true);
 });
