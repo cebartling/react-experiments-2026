@@ -25,3 +25,14 @@ Perform the following styling improvements to the forms on the `/multi-form` rou
   Create a feature branch for this work off of the main branch.
   Commit the changes with a descriptive message.
   Create a PR from the feature branch that will be merged into the main branch after review.
+
+
+
+## Enhance large dataset performance
+
+Pull more stock data from a reputable API to create a larger dataset to be served by msw.
+Implement pagination or infinite scrolling to efficiently handle and display large datasets in the UI.
+Optimize data fetching and rendering to improve performance when dealing with large datasets.
+Create a feature branch for this work off of the main branch.
+Commit the changes with a descriptive message.
+Create a PR from the feature branch that will be merged into the main branch after review.
