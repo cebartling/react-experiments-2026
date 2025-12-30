@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 /**
  * Metrics for virtualization performance monitoring.
@@ -14,6 +14,15 @@ export interface VirtualizationMetrics {
   renderRatio: number;
   /** Average render time in ms */
   avgRenderTime: number;
+  /** Callback to be used with React Profiler onRender */
+  onRenderCallback: (
+    id: string,
+    phase: 'mount' | 'update',
+    actualDuration: number,
+    baseDuration: number,
+    startTime: number,
+    commitTime: number
+  ) => void;
 }
 
 /**
@@ -22,14 +31,23 @@ export interface VirtualizationMetrics {
  * Tracks FPS, render ratio, and average render time to help
  * diagnose performance issues with virtualized tables.
  *
+ * Uses React's Profiler API to accurately measure render times.
+ * The returned `onRenderCallback` should be passed to a React Profiler
+ * component wrapping the component you want to measure.
+ *
  * @param renderedRows - Number of rows currently rendered
  * @param totalRows - Total number of rows in the dataset
- * @returns Metrics object with performance data
+ * @returns Metrics object with performance data and onRenderCallback
  *
  * @example
  * ```tsx
  * const metrics = useVirtualizationMetrics(visibleRows.length, totalRows);
- * console.log(`FPS: ${metrics.fps}, Render ratio: ${metrics.renderRatio}%`);
+ * 
+ * return (
+ *   <Profiler id="table-body" onRender={metrics.onRenderCallback}>
+ *     <TableBody />
+ *   </Profiler>
+ * );
  * ```
  */
 export function useVirtualizationMetrics(
@@ -79,24 +97,26 @@ export function useVirtualizationMetrics(
     };
   }, []);
 
-  // Track render time when rendered rows change
-  useEffect(() => {
-    const startTime = performance.now();
+  // Profiler callback for measuring actual render time
+  const onRenderCallback = useCallback(
+    (
+      _id: string,
+      _phase: 'mount' | 'update',
+      actualDuration: number
+    ) => {
+      renderTimesRef.current.push(actualDuration);
 
-    return () => {
-      const renderTime = performance.now() - startTime;
-
-      // Keep last 100 render times - limit before adding
-      if (renderTimesRef.current.length >= 100) {
+      // Keep last 100 render times
+      if (renderTimesRef.current.length > 100) {
         renderTimesRef.current.shift();
       }
 
-      renderTimesRef.current.push(renderTime);
-
-      const avg = renderTimesRef.current.reduce((a, b) => a + b, 0) / renderTimesRef.current.length;
+      const avg =
+        renderTimesRef.current.reduce((a, b) => a + b, 0) / renderTimesRef.current.length;
       setAvgRenderTime(Math.round(avg * 100) / 100);
-    };
-  }, [renderedRows]);
+    },
+    []
+  );
 
   const renderRatio = totalRows > 0 ? Math.round((renderedRows / totalRows) * 100) : 0;
 
@@ -106,5 +126,6 @@ export function useVirtualizationMetrics(
     totalRows,
     renderRatio,
     avgRenderTime,
+    onRenderCallback,
   };
 }
