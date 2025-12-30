@@ -42,13 +42,9 @@ export function StickyHeader({ headerGroups }: StickyHeaderProps) {
                 }}
                 tabIndex={canSort ? 0 : undefined}
                 role="columnheader"
-                aria-sort={
-                  sortDirection === 'asc'
-                    ? 'ascending'
-                    : sortDirection === 'desc'
-                      ? 'descending'
-                      : undefined
-                }
+                {...(sortDirection && {
+                  'aria-sort': sortDirection === 'asc' ? 'ascending' : 'descending',
+                })}
               >
                 <span className="header-content">
                   {header.isPlaceholder
