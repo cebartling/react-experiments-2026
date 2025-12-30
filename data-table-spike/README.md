@@ -126,22 +126,33 @@ src/
 ### Component Architecture
 
 ```mermaid
-block-beta
-    columns 1
-    block:table["VirtualizedStockTable"]
-        columns 2
-        SearchFilter["SearchFilter"]
-        RowCount["Row Count"]
+flowchart TB
+    subgraph VirtualizedStockTable
+        direction TB
+        subgraph Toolbar
+            SearchFilter
+            RowCount[Row Count Display]
+        end
+        subgraph StickyHeader
+            Symbol
+            Company
+            Price
+            Change
+            ChangePercent[Change %]
+            Volume
+            MarketCap[Market Cap]
+        end
+        subgraph VirtualizedTableBody
+            direction TB
+            Note[Renders only visible rows + overscan buffer]
+            Row1[AAPL - Apple Inc. - $150.00]
+            Row2[GOOGL - Alphabet - $140.00]
+            RowN[...]
+        end
     end
-    block:header["StickyHeader"]
-        columns 7
-        Symbol Company Price Change Percent["Change %"] Volume Cap["Market Cap"]
-    end
-    block:body["VirtualizedTableBody (renders only visible rows + overscan)"]
-        columns 1
-        row1["AAPL | Apple Inc. | $150.00 | +2.50 | +1.7% | ..."]
-        row2["GOOGL | Alphabet | $140.00 | -1.20 | -0.8% | ..."]
-    end
+
+    Toolbar --> StickyHeader
+    StickyHeader --> VirtualizedTableBody
 ```
 
 ### Data Flow
