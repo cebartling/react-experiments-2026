@@ -12,9 +12,19 @@ This project implements a read-only stock data table that displays market data f
 - **Column sorting** - Click column headers to sort ascending/descending
 - **Global search filter** - Filter stocks by symbol or company name with debounced input
 - **Virtualized rendering** - Efficiently render 1000+ rows at 55+ FPS using TanStack Virtual
+- **Infinite scrolling** - Load data incrementally as you scroll with paginated API
+- **Large dataset support** - 1,500 realistic stock entries with server-side pagination
 - **Loading and error states** - Skeleton loading and retry functionality
 - **Keyboard accessible** - Full keyboard navigation support
 - **Responsive design** - Works on desktop and mobile devices
+
+### Available Routes
+
+| Route | Component | Description |
+|-------|-----------|-------------|
+| `/` | HomePage | Navigation hub with links to table variants |
+| `/stocks-read-only` | StockTable | Basic virtualized table with all data loaded at once |
+| `/stocks-infinite` | InfiniteStockTable | Paginated infinite scroll with 1,500 stocks |
 
 ## Tech Stack
 
@@ -85,12 +95,13 @@ npm run preview
 ```
 src/
 ├── api/                    # API client and error handling
-│   ├── stockApi.ts         # Stock API functions
+│   ├── stockApi.ts         # Stock API functions (includes paginated fetch)
 │   └── errors.ts           # Custom error classes
 ├── components/
 │   └── StockTable/         # Table components
 │       ├── StockTable.tsx          # Standard table
 │       ├── VirtualizedStockTable.tsx # Virtualized table
+│       ├── InfiniteStockTable.tsx  # Infinite scroll table
 │       ├── VirtualizedTableBody.tsx  # Virtual row rendering
 │       ├── StickyHeader.tsx          # Fixed header
 │       ├── SearchFilter.tsx          # Debounced search
@@ -104,6 +115,7 @@ src/
 │   └── api.ts              # API configuration
 ├── hooks/                  # Custom React hooks
 │   ├── useStockData.ts     # Stock list data hook
+│   ├── useInfiniteStockData.ts # Infinite query hook for pagination
 │   ├── useStock.ts         # Single stock hook
 │   ├── usePrefetchStocks.ts # Data prefetching
 │   ├── useStockCache.ts    # Cache manipulation
@@ -112,15 +124,16 @@ src/
 │   ├── queryClient.ts      # TanStack Query configuration
 │   └── queryKeys.ts        # Type-safe query keys
 ├── mocks/                  # MSW API mocks
-│   ├── handlers.ts         # Request handlers
-│   ├── data.ts             # Mock stock data
+│   ├── handlers.ts         # Request handlers (supports pagination)
+│   ├── stockDataGenerator.ts # Large dataset generator (1,500 stocks)
+│   ├── data.ts             # Legacy mock stock data
 │   └── browser.ts          # Browser worker setup
 ├── providers/
 │   └── QueryProvider.tsx   # Query client provider
 ├── test/                   # Test utilities
 │   └── queryTestUtils.tsx  # Query testing helpers
 └── types/
-    └── stock.ts            # TypeScript interfaces
+    └── stock.ts            # TypeScript interfaces (includes pagination types)
 ```
 
 ### Component Architecture
@@ -241,6 +254,79 @@ The table uses TanStack Virtual to efficiently render large datasets:
 />
 ```
 
+## Infinite Scrolling
+
+The `InfiniteStockTable` component combines virtualization with paginated data fetching for optimal handling of large datasets.
+
+### How It Works
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant InfiniteStockTable
+    participant useInfiniteStockData
+    participant TanStack Query
+    participant MSW/API
+
+    User->>InfiniteStockTable: Scroll near bottom
+    InfiniteStockTable->>useInfiniteStockData: fetchNextPage()
+    useInfiniteStockData->>TanStack Query: Request next page
+    TanStack Query->>MSW/API: GET /stocks/paginated?page=N
+    MSW/API-->>TanStack Query: PaginatedStockApiResponse
+    TanStack Query-->>useInfiniteStockData: Append to pages
+    useInfiniteStockData-->>InfiniteStockTable: Updated data
+    InfiniteStockTable->>User: Render new rows
+```
+
+### Features
+
+- **Incremental loading** - Fetches 50 stocks per page as you scroll
+- **Server-side filtering** - Search queries are sent to the API for efficient filtering
+- **Server-side sorting** - Sort operations are handled by the API
+- **Progress indicator** - Visual progress bar shows loading status
+- **Debounced search** - 300ms debounce prevents excessive API calls
+
+### Configuration Props
+
+```tsx
+<InfiniteStockTable
+  rowHeight={48}      // Height of each row in pixels
+  overscan={10}       // Rows to render outside visible area
+  tableHeight={600}   // Viewport height in pixels
+  pageSize={50}       // Number of items per page
+/>
+```
+
+### Pagination API
+
+The paginated endpoint supports the following query parameters:
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `page` | number | 0 | Page number (0-indexed) |
+| `pageSize` | number | 50 | Items per page (max 100) |
+| `search` | string | - | Filter by symbol or company name |
+| `sortBy` | string | - | Field to sort by |
+| `sortOrder` | 'asc' \| 'desc' | 'desc' | Sort direction |
+
+### Response Format
+
+```typescript
+interface PaginatedStockApiResponse {
+  data: Stock[];
+  meta: {
+    timestamp: string;
+    count: number;        // Items in current page
+    totalCount: number;   // Total items matching query
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
+}
+```
+
 ## Testing
 
 ### Unit Tests
@@ -285,6 +371,23 @@ See [FEATURE-001: Stock Data Read-Only Table](documentation/features/FEATURE-001
 ## API Mocking
 
 The project uses MSW (Mock Service Worker) for API mocking during development and testing. Mock handlers are defined in `src/mocks/handlers.ts`.
+
+### Mock Dataset
+
+The mock API serves 1,500 realistic stock entries generated by `stockDataGenerator.ts`:
+
+- **Real companies** - Includes actual S&P 500 companies (AAPL, MSFT, GOOGL, etc.)
+- **Synthetic companies** - Generated companies with realistic names and data
+- **Consistent data** - Uses seeded random generation for reproducible results
+- **Realistic distributions** - Market caps range from micro-cap to mega-cap
+
+### Available Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/stocks` | GET | Returns all 1,500 stocks (legacy) |
+| `/stocks/paginated` | GET | Returns paginated stocks with filtering/sorting |
+| `/stocks/:symbol` | GET | Returns a single stock by symbol |
 
 To start the development server with mocked API:
 
