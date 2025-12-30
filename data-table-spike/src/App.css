@@ -68,6 +68,10 @@
 }
 
 .home-page nav li {
+  display: block;
+}
+
+.nav-card {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
@@ -75,26 +79,33 @@
   background-color: #f9fafb;
   border: 1px solid #e5e7eb;
   border-radius: 0.5rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+  text-decoration: none;
+  cursor: pointer;
 }
 
-.home-page nav li:hover {
+.nav-card:hover {
   border-color: #3b82f6;
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+  background-color: #f0f9ff;
 }
 
-.home-page nav a {
+.nav-card:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.nav-card-title {
   font-weight: 600;
   font-size: 1.125rem;
   color: #1f2937;
-  text-decoration: none;
 }
 
-.home-page nav a:hover {
+.nav-card:hover .nav-card-title {
   color: #3b82f6;
 }
 
-.route-description {
+.nav-card-description {
   font-size: 0.875rem;
   color: #6b7280;
 }

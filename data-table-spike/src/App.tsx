@@ -12,12 +12,16 @@ function HomePage() {
       <nav>
         <ul>
           <li>
-            <Link to="/stocks-read-only">Stock Table (Read-Only)</Link>
-            <span className="route-description">Basic virtualized table with all data loaded at once</span>
+            <Link to="/stocks-read-only" className="nav-card">
+              <span className="nav-card-title">Stock Table (Read-Only)</span>
+              <span className="nav-card-description">Basic virtualized table with all data loaded at once</span>
+            </Link>
           </li>
           <li>
-            <Link to="/stocks-infinite">Stock Table (Infinite Scroll)</Link>
-            <span className="route-description">Paginated infinite scroll with 1,500 stocks</span>
+            <Link to="/stocks-infinite" className="nav-card">
+              <span className="nav-card-title">Stock Table (Infinite Scroll)</span>
+              <span className="nav-card-description">Paginated infinite scroll with 1,500 stocks</span>
+            </Link>
           </li>
         </ul>
       </nav>
