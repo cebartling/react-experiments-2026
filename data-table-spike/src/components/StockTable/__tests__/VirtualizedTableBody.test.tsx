@@ -7,16 +7,19 @@ import type { Stock } from '../../../types/stock';
 
 // Mock TanStack Virtual
 vi.mock('@tanstack/react-virtual', () => ({
-  useVirtualizer: vi.fn(({ count }) => ({
-    getVirtualItems: () =>
-      Array.from({ length: Math.min(count, 10) }, (_, i) => ({
-        index: i,
-        start: i * 48,
-        size: 48,
-        key: i,
-      })),
-    getTotalSize: () => count * 48,
-  })),
+  useVirtualizer: vi.fn(({ count, estimateSize }) => {
+    const rowHeight = estimateSize ? estimateSize() : 48;
+    return {
+      getVirtualItems: () =>
+        Array.from({ length: Math.min(count, 10) }, (_, i) => ({
+          index: i,
+          start: i * rowHeight,
+          size: rowHeight,
+          key: i,
+        })),
+      getTotalSize: () => count * rowHeight,
+    };
+  }),
 }));
 
 const mockStocks: Stock[] = [
@@ -136,7 +139,7 @@ describe('VirtualizedTableBody', () => {
 
     const rows = screen.getAllByRole('row');
     rows.forEach((row) => {
-      expect(row).toHaveStyle({ height: '48px' }); // Mock returns 48 regardless
+      expect(row).toHaveStyle({ height: '60px' }); // Validates custom rowHeight prop
     });
   });
 
