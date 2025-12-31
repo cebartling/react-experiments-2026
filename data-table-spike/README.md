@@ -23,8 +23,9 @@ This project implements a read-only stock data table that displays market data f
 | Route | Component | Description |
 |-------|-----------|-------------|
 | `/` | HomePage | Navigation hub with links to table variants |
-| `/stocks-read-only` | StockTable | Basic virtualized table with all data loaded at once |
-| `/stocks-infinite` | InfiniteStockTable | Paginated infinite scroll with 1,500 stocks |
+| `/stocks-read-only` | StockTablePage | Basic table with all data loaded at once |
+| `/stocks-infinite` | InfiniteStockTablePage | Paginated infinite scroll with default settings |
+| `/infinite-scroll` | InfiniteScrollPage | Optimized infinite scroll demo for large datasets |
 
 ## Tech Stack
 
@@ -128,6 +129,10 @@ src/
 │   ├── stockDataGenerator.ts # Large dataset generator (1,500 stocks)
 │   ├── data.ts             # Legacy mock stock data
 │   └── browser.ts          # Browser worker setup
+├── pages/                  # Page components with layouts
+│   ├── InfiniteScrollPage.tsx    # Large dataset demo page
+│   ├── InfiniteStockTablePage.tsx # Standard infinite scroll page
+│   └── StockTablePage.tsx        # Read-only table page
 ├── providers/
 │   └── QueryProvider.tsx   # Query client provider
 ├── test/                   # Test utilities
@@ -278,13 +283,48 @@ sequenceDiagram
     InfiniteStockTable->>User: Render new rows
 ```
 
+### Scroll Detection Mechanism
+
+The infinite scroll uses a scroll event-based trigger to load more data:
+
+```mermaid
+flowchart TD
+    A[User Scrolls] --> B{scrollTop > 0?}
+    B -->|No| C[Ignore - Initial State]
+    B -->|Yes| D[Calculate Distance from Bottom]
+    D --> E{Distance < 200px?}
+    E -->|No| F[Continue Scrolling]
+    E -->|Yes| G{hasNextPage?}
+    G -->|No| H[All Data Loaded]
+    G -->|Yes| I{Already Fetching?}
+    I -->|Yes| J[Wait for Current Fetch]
+    I -->|No| K[fetchNextPage]
+    K --> L[Load Next Page]
+    L --> M[Append to Dataset]
+    M --> N[Update Progress Bar]
+```
+
+Key implementation details:
+- **Scroll event listener** - Uses React's `onScroll` prop for reliable event handling
+- **Distance threshold** - Triggers fetch when within 200px of the bottom
+- **Guard conditions** - Prevents duplicate fetches and respects loading state
+- **No auto-fetch on mount** - Data only loads when user actively scrolls
+
 ### Features
 
-- **Incremental loading** - Fetches 50 stocks per page as you scroll
+- **Incremental loading** - Fetches data in configurable page sizes as you scroll
 - **Server-side filtering** - Search queries are sent to the API for efficient filtering
 - **Server-side sorting** - Sort operations are handled by the API
-- **Progress indicator** - Visual progress bar shows loading status
+- **Progress indicator** - Visual progress bar shows percentage of data loaded
 - **Debounced search** - 300ms debounce prevents excessive API calls
+- **Scroll-triggered only** - No automatic loading until user scrolls
+
+### Route Variants
+
+| Route | Page Size | Overscan | Use Case |
+|-------|-----------|----------|----------|
+| `/stocks-infinite` | 50 | 10 | Standard browsing |
+| `/infinite-scroll` | 25 | 5 | Demo with visible incremental loading |
 
 ### Configuration Props
 
@@ -344,12 +384,52 @@ npm run test:coverage
 
 ### Acceptance Tests
 
+The project uses Cucumber with Playwright for BDD-style acceptance tests.
+
 ```bash
-# Run Cucumber tests
+# Run all Cucumber tests
 npm run test:acceptance
+
+# Run specific test tags
+npm run test:acceptance -- --tags "@infinite-scroll"
+npm run test:acceptance -- --tags "@stocks-infinite"
+npm run test:acceptance -- --tags "@navigation"
 
 # Generate HTML report
 npm run test:acceptance:html
+```
+
+#### Infinite Scroll Test Scenarios
+
+| Feature File | Scenarios | Description |
+|--------------|-----------|-------------|
+| `infinite-scroll.feature` | 9 | Large dataset demo page tests |
+| `stocks-infinite.feature` | 3 | Standard infinite scroll tests |
+| `page-navigation.feature` | 3 | Navigation and layout tests |
+
+Key test scenarios include:
+
+```gherkin
+# Initial partial load
+Scenario: Initial load shows partial data
+  Given I am on the infinite scroll page
+  Then I should see "25 of 1,500 stocks" in the row count
+  And the progress bar should show approximately 2 percent
+
+# Scroll-triggered loading
+Scenario: Scrolling to bottom loads more data
+  Given I am on the infinite scroll page
+  When I scroll to the bottom of the table
+  And I wait for data to load
+  Then the stock count should be greater than 25
+  And the progress bar should have increased
+
+# Search with infinite scroll
+Scenario: Search filter works with infinite scroll
+  Given I am on the infinite scroll page
+  When I type "AAPL" in the search filter
+  And I wait for the filter to apply
+  Then I should see "AAPL" in the virtualized table
 ```
 
 ## Implementation Plans
