@@ -17,3 +17,17 @@ A React 19 experiment demonstrating coordinated multi-form validation and submis
 - Centralized error display with field-level feedback
 
 **Tech Stack**: React 19, TypeScript, Vite, Zustand, React Hook Form, Zod, Tailwind CSS v4, MSW, Vitest, Cucumber.js + Playwright
+
+### [Stock Data Table Spike](./data-table-spike)
+
+A React data table spike demonstrating a high-performance, virtualized stock data table built with modern React patterns and TanStack libraries.
+
+**Problem**: Efficiently displaying and interacting with large datasets (1000+ rows) in a React table while maintaining smooth scrolling performance and responsive UI.
+
+**Key Concepts**:
+- Table virtualization for large datasets via TanStack Virtual
+- Server-side pagination with infinite scrolling
+- Column sorting and global search filtering
+- Data caching and auto-refetching via TanStack Query
+
+**Tech Stack**: React 19, TypeScript, Vite, TanStack Table, TanStack Query, TanStack Virtual, Tailwind CSS, MSW, Vitest, Cucumber.js + Playwright
