@@ -36,3 +36,10 @@ Optimize data fetching and rendering to improve performance when dealing with la
 Create a feature branch for this work off of the main branch.
 Commit the changes with a descriptive message.
 Create a PR from the feature branch that will be merged into the main branch after review.
+
+Implement infinite scrolling to efficiently handle and display large datasets in the UI.
+Put this on a separate route `/infinite-scroll`.
+Optimize data fetching and rendering to improve performance when dealing with large datasets.
+Create a feature branch for this work off of the main branch.
+Commit the changes with a descriptive message.
+Create a PR from the feature branch that will be merged into the main branch after review.

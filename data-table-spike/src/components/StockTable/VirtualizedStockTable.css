@@ -91,7 +91,7 @@
 
 /* Virtual Table Body */
 .virtual-table-body {
-  flex: 1;
+  flex: 0 0 auto;
   overflow-y: auto;
   overflow-x: hidden;
 }

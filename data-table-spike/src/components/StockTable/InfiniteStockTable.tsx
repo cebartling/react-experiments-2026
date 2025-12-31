@@ -127,20 +127,23 @@ export function InfiniteStockTable({
 
   const virtualRows = virtualizer.getVirtualItems();
 
-  // Fetch next page when scrolling near the bottom
-  useEffect(() => {
-    const lastItem = virtualRows[virtualRows.length - 1];
-    if (!lastItem) return;
+  // Handle scroll to load more data
+  const handleScroll = useCallback(
+    (e: React.UIEvent<HTMLDivElement>) => {
+      const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+      // Only trigger if user has actually scrolled
+      if (scrollTop === 0) return;
 
-    // Trigger fetch when we're within 5 items of the end
-    if (
-      lastItem.index >= rows.length - 5 &&
-      hasNextPage &&
-      !isFetchingNextPage
-    ) {
-      fetchNextPage();
-    }
-  }, [virtualRows, rows.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
+      // Calculate how close to the bottom we are
+      const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+      const threshold = 200; // pixels from bottom to trigger fetch
+
+      if (distanceFromBottom < threshold && hasNextPage && !isFetchingNextPage) {
+        fetchNextPage();
+      }
+    },
+    [hasNextPage, isFetchingNextPage, fetchNextPage]
+  );
 
   const handleRetry = useCallback(() => {
     refetch();
@@ -187,6 +190,7 @@ export function InfiniteStockTable({
           className="virtual-table-body"
           style={{ height: `${tableHeight}px`, overflow: 'auto' }}
           role="rowgroup"
+          onScroll={handleScroll}
         >
           {rows.length === 0 ? (
             <div className="no-data">
