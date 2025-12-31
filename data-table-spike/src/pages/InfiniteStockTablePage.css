@@ -1,0 +1,57 @@
+.infinite-stock-table-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f9fafb;
+}
+
+.infinite-stock-table-page .page-header {
+  padding: 1.5rem 2rem;
+  background-color: #fff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.infinite-stock-table-page .back-link {
+  display: inline-flex;
+  align-items: center;
+  color: #3b82f6;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+  transition: color 0.15s ease;
+}
+
+.infinite-stock-table-page .back-link:hover {
+  color: #2563eb;
+}
+
+.infinite-stock-table-page .page-header h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.infinite-stock-table-page .page-description {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.infinite-stock-table-page .page-content {
+  flex: 1;
+  padding: 1.5rem 2rem;
+}
+
+@media (max-width: 768px) {
+  .infinite-stock-table-page .page-header,
+  .infinite-stock-table-page .page-content {
+    padding: 1rem;
+  }
+
+  .infinite-stock-table-page .page-header h1 {
+    font-size: 1.5rem;
+  }
+}

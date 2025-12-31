@@ -1,6 +1,5 @@
 import { Routes, Route, Link } from 'react-router-dom';
-import { StockTable, InfiniteStockTable } from './components/StockTable';
-import { InfiniteScrollPage } from './pages';
+import { InfiniteScrollPage, InfiniteStockTablePage, StockTablePage } from './pages';
 import './App.css';
 
 function HomePage() {
@@ -46,8 +45,8 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/stocks-read-only" element={<StockTable />} />
-      <Route path="/stocks-infinite" element={<InfiniteStockTable />} />
+      <Route path="/stocks-read-only" element={<StockTablePage />} />
+      <Route path="/stocks-infinite" element={<InfiniteStockTablePage />} />
       <Route path="/infinite-scroll" element={<InfiniteScrollPage />} />
     </Routes>
   );

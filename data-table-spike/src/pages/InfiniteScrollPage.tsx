@@ -10,9 +10,9 @@ import './InfiniteScrollPage.css';
  * - Virtual rendering (only visible rows are rendered in the DOM)
  * - Server-side filtering and sorting
  *
- * Optimized settings for large datasets:
- * - Page size of 100 items for fewer network requests
- * - Higher overscan for smoother scrolling
+ * Demo-focused settings:
+ * - Smaller page size (25 items) to clearly show incremental loading
+ * - Lower overscan to prevent premature fetching
  * - Larger viewport for better data visibility
  */
 export function InfiniteScrollPage() {
@@ -30,7 +30,7 @@ export function InfiniteScrollPage() {
       </header>
 
       <main className="page-content">
-        <InfiniteStockTable pageSize={100} overscan={15} tableHeight={700} rowHeight={48} />
+        <InfiniteStockTable pageSize={25} overscan={5} tableHeight={700} rowHeight={48} />
       </main>
 
       <footer className="page-footer">
